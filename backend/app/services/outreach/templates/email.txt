@@ -1,0 +1,16 @@
+Dear {{ intermediary_name or 'Team' }},
+
+We are reaching out regarding {{ company_name }}. Our records indicate that the latest available
+financials may be outdated. To ensure investors receive timely and accurate information, we'd appreciate
+your assistance in providing the most recent financial metrics and any relevant updates.
+
+Specifically, we are looking for updated Revenue, EBITDA, and the Financial Timestamp for the current period.
+
+If you could share the latest figures or confirm the current status, that would be very helpful.
+
+Thank you for your time and support.
+
+Best regards,
+{{ sender_name }}
+
+

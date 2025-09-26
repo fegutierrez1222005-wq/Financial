@@ -1,0 +1,37 @@
+fastapi==0.111.0
+uvicorn[standard]==0.30.0
+
+# Config and validation
+pydantic==2.8.2
+pydantic-settings==2.3.4
+python-dotenv==1.0.1
+
+# Database
+SQLAlchemy==2.0.35
+psycopg2-binary==2.9.9
+alembic==1.13.2
+
+# Security
+passlib[bcrypt]==1.7.4
+PyJWT==2.9.0
+email-validator==2.2.0
+python-multipart==0.0.9
+
+# Async HTTP and retries
+httpx==0.27.2
+tenacity==9.0.0
+
+# Queue/Cache
+redis==5.0.8
+celery==5.4.0
+
+# Logging
+loguru==0.7.2
+
+# Spreadsheet & templating
+pandas==2.2.2
+openpyxl==3.1.5
+gspread==6.1.2
+google-auth==2.34.0
+Jinja2==3.1.4
+

@@ -1,0 +1,89 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fdms}
+      POSTGRES_USER: ${POSTGRES_USER:-fdms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fdms_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-fdms}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://fdms:fdms_password@postgres:5432/fdms}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      ENV: ${ENV:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    command: sh -c "alembic upgrade head || python scripts/init_db.py; python scripts/create_admin.py; uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+
+  # Frontend is served by nginx from built dist
+
+  nginx:
+    build:
+      context: ./nginx
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+  celery-worker:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://fdms:fdms_password@postgres:5432/fdms}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      ENV: ${ENV:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=INFO
+    volumes:
+      - ./backend:/app
+
+  celery-beat:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://fdms:fdms_password@postgres:5432/fdms}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      ENV: ${ENV:-development}
+    depends_on:
+      - celery-worker
+    command: celery -A app.tasks.celery_app.celery_app beat --loglevel=INFO
+    volumes:
+      - ./backend:/app
+
+volumes:
+  postgres_data:
+
+

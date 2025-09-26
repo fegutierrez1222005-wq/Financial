@@ -1,0 +1,7 @@
+Company Name,Financial Timestamp,Revenue,EBITDA,Status,Intermediary Email,Last Outreach Date,Outreach Count,Source,Last Updated At,Notes
+Acme Corp,2023-08-15,25000000,4500000,Flagged,banker@acmeadvisors.com,2024-01-15,1,PitchBook,2024-01-15,
+Globex LLC,2024-06-10,32000000,5600000,Valid,deal@globexib.com,,0,FactSet,2024-06-10,
+Soylent Inc,2022-12-01,18000000,3200000,Flagged,intermediary@soylent.com,2023-12-10,2,CapIQ,2023-12-10,
+Initech,2024-03-20,27000000,4800000,Valid,bankers@initechbank.com,,0,SEC,2024-03-20,
+Umbrella Co,2023-02-05,15000000,2700000,Flagged,broker@umbrellaib.com,2023-03-01,3,Axial,2023-03-01,
+

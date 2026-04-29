@@ -1,4 +1,4 @@
-CREATE DATABASE fdms;
-CREATE USER fdms WITH PASSWORD 'fdms_password';
-GRANT ALL PRIVILEGES ON DATABASE fdms TO fdms;
+-- The official Postgres image creates POSTGRES_DB and POSTGRES_USER before
+-- running init scripts. Keep this file for future bootstrap SQL without
+-- recreating those objects.
 

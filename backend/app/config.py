@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     env: str = Field(default="development")
     log_level: str = Field(default="INFO")
     api_v1_prefix: str = Field(default="/api/v1")
-    secret_key: str = Field(default="change_me")s
+    secret_key: str = Field(default="change_me")
     access_token_expire_minutes: int = Field(default=60)
     cors_origins: List[AnyHttpUrl] | List[str] = Field(default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"])  # type: ignore[assignment]
 

@@ -7,7 +7,7 @@ export default function Login() {
   const dispatch = useAppDispatch()
   const { token, loading, error } = useAppSelector(s => s.auth)
   const [email, setEmail] = useState('admin@example.com')
-  const [password, setPassword] = useState('ishowmeat123')
+  const [password, setPassword] = useState('Nitrozox')
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()

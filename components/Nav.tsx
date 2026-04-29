@@ -1,10 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartProvider";
 
 export function Nav() {
-  const { quantity, openCart } = useCart();
+  const { quantity, openCart, bumpKey } = useCart();
+  const [isBumping, setIsBumping] = useState(false);
+  const firstRender = useRef(true);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    setIsBumping(true);
+    const timer = window.setTimeout(() => setIsBumping(false), 360);
+    return () => window.clearTimeout(timer);
+  }, [bumpKey]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/5 bg-navy/80 backdrop-blur-md">
@@ -33,7 +46,9 @@ export function Nav() {
           type="button"
           onClick={openCart}
           aria-label={`Open cart (${quantity} item${quantity === 1 ? "" : "s"})`}
-          className="group relative inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-ivory transition hover:border-sky/40 hover:bg-white/10"
+          className={`group relative inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-ivory transition hover:border-sky/40 hover:bg-white/10 ${
+            isBumping ? "cart-button-bump" : ""
+          }`}
         >
           <CartIcon />
           <span className="hidden sm:inline">Cart</span>
@@ -42,7 +57,7 @@ export function Nav() {
               quantity > 0
                 ? "bg-sky text-navy"
                 : "bg-white/10 text-ivory/60 group-hover:bg-white/15"
-            }`}
+            } ${isBumping ? "cart-badge-bump" : ""}`}
           >
             {quantity}
           </span>

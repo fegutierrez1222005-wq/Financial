@@ -18,6 +18,7 @@ export const PRODUCT = {
 type CartContextValue = {
   quantity: number;
   isOpen: boolean;
+  bumpKey: number;
   addToCart: () => void;
   removeOne: () => void;
   setQuantity: (next: number) => void;
@@ -30,6 +31,10 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [quantity, setQuantityState] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  // Increments every time an item is added so the nav can play a brief
+  // bump animation as feedback. Keeps the drawer closed until the user
+  // explicitly opens it.
+  const [bumpKey, setBumpKey] = useState(0);
 
   const setQuantity = useCallback((next: number) => {
     setQuantityState(Math.max(0, Math.min(99, Math.floor(next))));
@@ -37,7 +42,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = useCallback(() => {
     setQuantityState((q) => Math.min(99, q + 1));
-    setIsOpen(true);
+    setBumpKey((k) => k + 1);
   }, []);
 
   const removeOne = useCallback(() => {
@@ -48,13 +53,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     () => ({
       quantity,
       isOpen,
+      bumpKey,
       addToCart,
       removeOne,
       setQuantity,
       openCart: () => setIsOpen(true),
       closeCart: () => setIsOpen(false),
     }),
-    [quantity, isOpen, addToCart, removeOne, setQuantity]
+    [quantity, isOpen, bumpKey, addToCart, removeOne, setQuantity]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

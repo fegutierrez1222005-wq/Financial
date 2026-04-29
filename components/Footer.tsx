@@ -5,9 +5,7 @@ export function Footer() {
         <div>
           <div className="font-serif text-2xl text-ivory">Zibs</div>
           <p className="mt-2 max-w-md text-sm text-ivory/55">
-            Zero nicotine. Dietary supplement. For the generation that
-            won&apos;t quit the pouch — but won&apos;t lose its face to it
-            either.
+            Zero nicotine. Dietary supplement.
           </p>
         </div>
         <div className="flex flex-col items-start gap-1 text-xs uppercase tracking-ultra-wide text-ivory/45 md:items-end">

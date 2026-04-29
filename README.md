@@ -130,12 +130,13 @@ key in Vercel and emails will be delivered through Resend.
 
 ## Page sections
 
-- `Nav` — minimal nav with `Join Waitlist` CTA
-- `Hero` — “Keep the pouch. Lose the damage.” headline + tin render
+- `Nav` — minimal nav with cart icon + count badge
+- `Hero` — “Keep the pouch. Lose the damage.” headline + tin render + Add to cart CTA
 - `Stats` — 47% gum disease, 20 minutes daily, 30 count
 - `HowItWorks` — Place it / Let it work / Protect your gums
 - `Ingredients` — Collagen amino acids, CoQ10, Vitamin C, HPMC
-- `Waitlist` — email capture wired to `/api/waitlist`
+- `Reserve` — product card with quantity stepper + Add to cart
+- `CartDrawer` — slide-in cart with line item, subtotal, and email capture wired to `/api/waitlist`
 - `Footer` — Patent pending · 2026 · Zero nicotine · Dietary supplement
 
 ## Scripts

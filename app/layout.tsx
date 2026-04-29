@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { CartProvider } from "@/components/CartProvider";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -19,12 +20,12 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "Zibs — Keep the pouch. Lose the damage.",
   description:
-    "Zibs is a zero-nicotine buccal pouch that delivers collagen amino acids, CoQ10, and Vitamin C straight to the gum line. Patent pending. Join the waitlist.",
+    "Zibs is a zero-nicotine buccal pouch that delivers collagen amino acids, CoQ10, and Vitamin C straight to the gum line. Patent pending.",
   metadataBase: new URL("https://zibs.com"),
   openGraph: {
     title: "Zibs — Keep the pouch. Lose the damage.",
     description:
-      "Zero-nicotine buccal pouch built for the looksmaxxing generation. 20 minutes a day to protect your gums.",
+      "Zero-nicotine buccal pouch. 20 minutes a day. Collagen amino acids, CoQ10, Vitamin C.",
     type: "website",
   },
   twitter: {
@@ -42,7 +43,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
-      <body>{children}</body>
+      <body>
+        <CartProvider>{children}</CartProvider>
+      </body>
     </html>
   );
 }

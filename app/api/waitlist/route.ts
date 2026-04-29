@@ -5,9 +5,12 @@ export const runtime = "nodejs";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {
-  let payload: { email?: unknown } = {};
+  let payload: { email?: unknown; quantity?: unknown } = {};
   try {
-    payload = (await request.json()) as { email?: unknown };
+    payload = (await request.json()) as {
+      email?: unknown;
+      quantity?: unknown;
+    };
   } catch {
     return NextResponse.json(
       { error: "Invalid request body." },
@@ -25,6 +28,11 @@ export async function POST(request: Request) {
     );
   }
 
+  const quantity =
+    typeof payload.quantity === "number" && Number.isFinite(payload.quantity)
+      ? Math.max(0, Math.min(99, Math.floor(payload.quantity)))
+      : 0;
+
   const apiKey = process.env.RESEND_API_KEY;
 
   // When RESEND_API_KEY is missing, we still accept the signup so the
@@ -32,7 +40,9 @@ export async function POST(request: Request) {
   // Vercel to enable real email delivery.
   if (!apiKey) {
     if (process.env.NODE_ENV !== "production") {
-      console.info("[zibs] waitlist signup (no Resend key set):", email);
+      console.info(
+        `[zibs] reservation signup (no Resend key set): ${email} qty=${quantity}`
+      );
     }
     return NextResponse.json({ ok: true, delivered: false });
   }
@@ -49,8 +59,8 @@ export async function POST(request: Request) {
       from: fromAddress,
       to: [notifyAddress],
       replyTo: email,
-      subject: "New Zibs waitlist signup",
-      text: `New waitlist signup: ${email}`,
+      subject: "New Zibs reservation",
+      text: `New Zibs reservation\nEmail: ${email}\nQuantity: ${quantity}`,
     });
 
     return NextResponse.json({ ok: true, delivered: true });

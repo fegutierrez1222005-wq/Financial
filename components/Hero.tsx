@@ -1,4 +1,10 @@
+"use client";
+
+import { formatPrice, PRODUCT, useCart } from "./CartProvider";
+
 export function Hero() {
+  const { addToCart, openCart } = useCart();
+
   return (
     <section className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0">
@@ -21,24 +27,30 @@ export function Hero() {
             sends collagen amino acids, CoQ10, and Vitamin C straight into your
             gum line for twenty minutes a day.
           </p>
-          <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-            <a
-              href="#waitlist"
-              className="inline-flex items-center justify-center rounded-full bg-sky px-7 py-3.5 text-sm font-semibold text-navy transition hover:bg-sky-soft"
+
+          <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+            <button
+              type="button"
+              onClick={addToCart}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-sky px-7 py-3.5 text-sm font-semibold text-navy transition hover:bg-sky-soft"
             >
-              Join the waitlist
-            </a>
-            <a
-              href="#how-it-works"
-              className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-ultra-wide text-ivory/70 transition hover:text-ivory"
+              Add to cart
+              <span className="text-navy/60">·</span>
+              <span>{formatPrice(PRODUCT.priceCents)}</span>
+            </button>
+            <button
+              type="button"
+              onClick={openCart}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-6 py-3.5 text-sm font-medium text-ivory transition hover:border-sky/40 hover:bg-white/5"
             >
-              How it works
+              View cart
               <span aria-hidden>→</span>
-            </a>
+            </button>
           </div>
-          <p className="mt-8 max-w-md text-sm text-ivory/50">
-            Zero nicotine. Dietary supplement. Same tin. Same ritual. Different
-            outcome.
+
+          <p className="mt-8 max-w-md text-sm text-ivory/45">
+            Pre-launch reservation. Zero nicotine · Dietary supplement · 30 ct
+            tin.
           </p>
         </div>
 
@@ -78,15 +90,7 @@ function ZibsTin() {
         </linearGradient>
       </defs>
 
-      <ellipse
-        cx="210"
-        cy="340"
-        rx="160"
-        ry="22"
-        fill="#000"
-        opacity="0.55"
-      />
-
+      <ellipse cx="210" cy="340" rx="160" ry="22" fill="#000" opacity="0.55" />
       <ellipse
         cx="210"
         cy="245"
@@ -96,13 +100,7 @@ function ZibsTin() {
         opacity="0.85"
       />
       <ellipse cx="210" cy="232" rx="170" ry="50" fill="#0d1f3c" />
-      <ellipse
-        cx="210"
-        cy="232"
-        rx="170"
-        ry="50"
-        fill="url(#tinFace)"
-      />
+      <ellipse cx="210" cy="232" rx="170" ry="50" fill="url(#tinFace)" />
       <ellipse
         cx="210"
         cy="226"

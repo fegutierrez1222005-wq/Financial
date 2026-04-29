@@ -13,8 +13,7 @@ const STATS = [
   {
     figure: "30 ct",
     label: "per tin",
-    description:
-      "a full month of routine. One pouch a day. Subscribe and forget.",
+    description: "a full month of routine. One pouch a day.",
   },
 ];
 

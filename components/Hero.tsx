@@ -11,16 +11,17 @@ export function Hero() {
         <div className="absolute -left-40 top-10 h-[420px] w-[420px] rounded-full bg-sky/15 blur-3xl" />
         <div className="absolute -right-32 bottom-0 h-[380px] w-[380px] rounded-full bg-sky/10 blur-3xl" />
       </div>
-      <div className="relative mx-auto grid max-w-6xl gap-16 px-6 pb-28 pt-24 md:px-10 md:pt-32 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
+      <div className="relative mx-auto grid max-w-6xl gap-12 px-6 pb-28 pt-24 md:px-10 md:pt-32 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
         <div className="flex flex-col justify-center">
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-sky/30 bg-sky/10 px-4 py-1.5 text-[0.65rem] uppercase tracking-ultra-wide text-sky">
             <span className="h-1.5 w-1.5 rounded-full bg-sky" />
             Patent Pending · USPTO · April 2026
           </span>
-          <h1 className="mt-8 font-serif text-[2.85rem] leading-[0.98] tracking-[-0.015em] text-ivory sm:text-6xl md:text-[5.5rem] md:leading-[0.95] md:tracking-[-0.02em] lg:text-[6.5rem]">
-            Keep the pouch.
-            <br />
-            <span className="italic text-sky">Lose the damage.</span>
+          <h1 className="mt-8 font-serif text-[2.6rem] leading-[1.02] tracking-[-0.01em] text-ivory sm:text-[3.4rem] md:text-[4.25rem] md:leading-[0.98] md:tracking-[-0.015em] lg:text-[5rem]">
+            <span className="block whitespace-nowrap">Keep the pouch.</span>
+            <span className="block whitespace-nowrap italic text-sky">
+              Lose the damage.
+            </span>
           </h1>
           <p className="mt-8 max-w-xl text-lg leading-relaxed text-ivory/75 md:text-xl">
             Zibs is a zero-nicotine buccal pouch that sits where Zyn sits — and

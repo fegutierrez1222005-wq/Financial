@@ -10,7 +10,7 @@ const FEATURES = [
 ];
 
 export function Reserve() {
-  const { quantity, addToCart, removeOne, openCart } = useCart();
+  const { quantity, addToCart, openCart } = useCart();
 
   return (
     <section
@@ -64,52 +64,26 @@ export function Reserve() {
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-stretch gap-3">
-                <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-2 py-1">
-                  <button
-                    type="button"
-                    onClick={removeOne}
-                    disabled={quantity === 0}
-                    aria-label="Decrease quantity"
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-ivory/70 transition hover:bg-white/10 hover:text-ivory disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    −
-                  </button>
-                  <span
-                    aria-live="polite"
-                    className="min-w-[1.5rem] text-center text-sm font-semibold text-ivory"
-                  >
-                    {quantity}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={addToCart}
-                    aria-label="Increase quantity"
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-ivory/70 transition hover:bg-white/10 hover:text-ivory"
-                  >
-                    +
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={addToCart}
-                  className="flex-1 rounded-full bg-sky px-6 py-3 text-sm font-semibold text-navy transition hover:bg-sky-soft"
-                >
-                  Add to cart
-                </button>
-              </div>
-
               <button
                 type="button"
-                onClick={openCart}
-                className="w-full rounded-full border border-white/10 px-6 py-3 text-sm font-medium text-ivory/80 transition hover:border-sky/40 hover:bg-white/5"
+                onClick={addToCart}
+                className="w-full rounded-full bg-sky px-6 py-3.5 text-sm font-semibold text-navy transition hover:bg-sky-soft"
               >
-                View cart{quantity > 0 ? ` (${quantity})` : ""}
+                Add to cart
               </button>
 
+              {quantity > 0 && (
+                <button
+                  type="button"
+                  onClick={openCart}
+                  className="w-full rounded-full border border-white/10 px-6 py-3 text-sm font-medium text-ivory/80 transition hover:border-sky/40 hover:bg-white/5"
+                >
+                  View cart ({quantity})
+                </button>
+              )}
+
               <p className="pt-2 text-center text-[0.7rem] uppercase tracking-ultra-wide text-ivory/40">
-                Pre-launch reservation · No charge today
+                Adjust quantity in cart · No charge today
               </p>
             </div>
           </div>

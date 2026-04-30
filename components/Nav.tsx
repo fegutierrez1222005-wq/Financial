@@ -30,7 +30,7 @@ export function Nav() {
             Patent Pending
           </span>
         </Link>
-        <nav className="hidden items-center gap-8 text-sm text-ivory/70 md:flex">
+        <nav className="hidden items-center gap-7 text-sm text-ivory/70 md:flex">
           <a href="#how-it-works" className="hover:text-ivory">
             How it works
           </a>
@@ -39,6 +39,9 @@ export function Nav() {
           </a>
           <a href="#reserve" className="hover:text-ivory">
             Reserve
+          </a>
+          <a href="#faq" className="hover:text-ivory">
+            FAQ
           </a>
         </nav>
 

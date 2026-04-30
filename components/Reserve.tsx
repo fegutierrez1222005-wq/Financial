@@ -1,6 +1,7 @@
 "use client";
 
 import { formatPrice, PRODUCT, useCart } from "./CartProvider";
+import { Reveal } from "./Reveal";
 
 const FEATURES = [
   "30 mucoadhesive pouches",
@@ -22,14 +23,19 @@ export function Reserve() {
       </div>
 
       <div className="relative mx-auto max-w-5xl px-6 md:px-10">
-        <div className="mb-12 text-center">
-          <span className="eyebrow">Reserve</span>
-          <h2 className="mt-4 font-serif text-4xl leading-tight text-ivory md:text-5xl">
-            One tin. <span className="italic text-sky">One ritual.</span>
-          </h2>
-        </div>
+        <Reveal>
+          <div className="mb-12 text-center">
+            <span className="eyebrow">Reserve</span>
+            <h2 className="mt-4 font-serif text-4xl leading-tight text-ivory md:text-5xl">
+              One tin. <span className="italic text-sky">One ritual.</span>
+            </h2>
+          </div>
+        </Reveal>
 
-        <div className="grid overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm md:grid-cols-[1.05fr_1fr]">
+        <Reveal
+          delay={120}
+          className="grid overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] shadow-[0_40px_80px_-40px_rgba(0,0,0,0.6)] backdrop-blur-sm transition-all duration-500 hover:border-sky/20 md:grid-cols-[1.05fr_1fr]"
+        >
           <div className="relative flex items-center justify-center bg-navy-deep px-6 py-12 md:px-10 md:py-16">
             <div className="absolute inset-0 bg-gradient-to-br from-sky/10 via-transparent to-transparent" />
             <div className="relative h-72 w-72 max-w-full md:h-80 md:w-80">
@@ -97,7 +103,7 @@ export function Reserve() {
               </p>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

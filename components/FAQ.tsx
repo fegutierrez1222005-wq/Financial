@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Reveal } from "./Reveal";
 
 const ITEMS = [
   {
@@ -30,18 +31,23 @@ const ITEMS = [
 ];
 
 export function FAQ() {
+  const [openIndex, setOpenIndex] = useState<number>(0);
+
   return (
     <section
       id="faq"
       className="relative border-y border-white/5 bg-navy-deep py-24 md:py-32"
     >
       <div className="mx-auto max-w-4xl px-6 md:px-10">
-        <div className="mb-12 text-center">
-          <span className="eyebrow">Questions</span>
-          <h2 className="mt-4 font-serif text-4xl leading-tight text-ivory md:text-5xl">
-            Research-backed <span className="italic text-sky">answers.</span>
-          </h2>
-        </div>
+        <Reveal>
+          <div className="mb-12 text-center">
+            <span className="eyebrow">Questions</span>
+            <h2 className="mt-4 font-serif text-4xl leading-tight text-ivory md:text-5xl">
+              Research-backed{" "}
+              <span className="italic text-sky">answers.</span>
+            </h2>
+          </div>
+        </Reveal>
 
         <ul className="divide-y divide-white/10 border-y border-white/10">
           {ITEMS.map((item, index) => (
@@ -49,7 +55,10 @@ export function FAQ() {
               key={item.q}
               question={item.q}
               answer={item.a}
-              defaultOpen={index === 0}
+              isOpen={openIndex === index}
+              onToggle={() =>
+                setOpenIndex((cur) => (cur === index ? -1 : index))
+              }
             />
           ))}
         </ul>
@@ -61,39 +70,61 @@ export function FAQ() {
 function FAQItem({
   question,
   answer,
-  defaultOpen = false,
+  isOpen,
+  onToggle,
 }: {
   question: string;
   answer: string;
-  defaultOpen?: boolean;
+  isOpen: boolean;
+  onToggle: () => void;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const innerRef = useRef<HTMLDivElement | null>(null);
+  const [maxHeight, setMaxHeight] = useState<number>(0);
+
+  useEffect(() => {
+    if (!innerRef.current) return;
+    setMaxHeight(isOpen ? innerRef.current.scrollHeight : 0);
+  }, [isOpen, answer]);
+
   return (
     <li>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-start justify-between gap-6 py-6 text-left transition hover:text-ivory"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="flex w-full items-start justify-between gap-6 py-6 text-left transition"
       >
-        <span className="font-serif text-xl text-ivory md:text-2xl">
+        <span
+          className={`font-serif text-xl transition-colors md:text-2xl ${
+            isOpen ? "text-ivory" : "text-ivory/85"
+          }`}
+        >
           {question}
         </span>
         <span
           aria-hidden
-          className={`relative mt-2 inline-block h-3 w-3 flex-shrink-0 transition-transform duration-200 ${
-            open ? "rotate-45" : ""
+          className={`relative mt-2 inline-block h-3 w-3 flex-shrink-0 transition-transform duration-300 ${
+            isOpen ? "rotate-45" : ""
           }`}
         >
           <span className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-sky" />
           <span className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-sky" />
         </span>
       </button>
-      {open && (
-        <p className="-mt-1 max-w-3xl pb-7 pr-8 text-base leading-relaxed text-ivory/70">
-          {answer}
-        </p>
-      )}
+      <div
+        style={{ maxHeight }}
+        className="overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)]"
+      >
+        <div ref={innerRef}>
+          <p
+            className={`-mt-1 max-w-3xl pb-7 pr-8 text-base leading-relaxed text-ivory/70 transition-opacity duration-300 ${
+              isOpen ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {answer}
+          </p>
+        </div>
+      </div>
     </li>
   );
 }

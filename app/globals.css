@@ -131,6 +131,37 @@ h4 {
   }
 }
 
+@keyframes fade-in-row {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tin-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.tin-float {
+  animation: tin-float 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tin-float {
+    animation: none;
+  }
+}
+
 .reveal-in {
   opacity: 1;
   transform: translateY(0);

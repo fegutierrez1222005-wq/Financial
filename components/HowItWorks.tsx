@@ -1,3 +1,5 @@
+import { Reveal } from "./Reveal";
+
 const STEPS = [
   {
     number: "01",
@@ -22,21 +24,23 @@ export function HowItWorks() {
       id="how-it-works"
       className="relative mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32"
     >
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <span className="eyebrow">How it works</span>
-          <h2 className="mt-4 max-w-2xl font-serif text-4xl leading-tight text-ivory md:text-5xl">
-            One pouch. Twenty minutes.
-            <br />
-            <span className="italic text-sky">Net zero damage.</span>
-          </h2>
+      <Reveal>
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <span className="eyebrow">How it works</span>
+            <h2 className="mt-4 max-w-2xl font-serif text-4xl leading-tight text-ivory md:text-5xl">
+              One pouch. Twenty minutes.
+              <br />
+              <span className="italic text-sky">Net zero damage.</span>
+            </h2>
+          </div>
+          <p className="max-w-md text-base leading-relaxed text-ivory/70">
+            Designed for the generation that won&apos;t quit Zyn but won&apos;t
+            let it destroy their smile either. The ritual stays. The damage
+            doesn&apos;t.
+          </p>
         </div>
-        <p className="max-w-md text-base leading-relaxed text-ivory/70">
-          Designed for the generation that won&apos;t quit Zyn but won&apos;t
-          let it destroy their smile either. The ritual stays. The damage
-          doesn&apos;t.
-        </p>
-      </div>
+      </Reveal>
 
       <div className="relative mt-20">
         <div
@@ -44,8 +48,8 @@ export function HowItWorks() {
           className="pointer-events-none absolute left-0 right-0 top-[2.3rem] hidden h-px bg-gradient-to-r from-transparent via-sky/40 to-transparent md:block"
         />
         <ol className="grid gap-12 md:grid-cols-3 md:gap-8">
-          {STEPS.map((step) => (
-            <li key={step.number} className="relative">
+          {STEPS.map((step, i) => (
+            <Reveal as="li" key={step.number} delay={i * 120} className="relative">
               <div className="flex items-center gap-4 md:flex-col md:items-start">
                 <span className="relative inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-sky/40 bg-navy text-[0.7rem] uppercase tracking-ultra-wide text-sky md:h-[4.6rem] md:w-[4.6rem] md:text-base">
                   {step.number}
@@ -57,7 +61,7 @@ export function HowItWorks() {
               <p className="mt-4 max-w-md text-sm leading-relaxed text-ivory/70 md:mt-5 md:text-base">
                 {step.body}
               </p>
-            </li>
+            </Reveal>
           ))}
         </ol>
       </div>

@@ -65,12 +65,12 @@ export function Flavors() {
               as="li"
               delay={index * 100}
               key={flavor.id}
-              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-7 transition hover:border-sky/30"
+              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-7 transition-all duration-500 hover:-translate-y-1 hover:border-sky/30 hover:shadow-[0_30px_60px_-30px_rgba(168,196,224,0.25)]"
             >
               <div
                 className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${flavor.palette.glow} opacity-70 transition group-hover:opacity-100`}
               />
-              <div className="relative flex h-56 items-center justify-center">
+              <div className="relative flex h-56 items-center justify-center transition-transform duration-500 group-hover:-translate-y-1">
                 <FlavorTin
                   id={flavor.id}
                   tag={flavor.palette.tag}

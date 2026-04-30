@@ -1,3 +1,5 @@
+import { Reveal } from "./Reveal";
+
 const PARTNERS = [
   { name: "USPTO", note: "Provisional patent" },
   { name: "Northwestern", note: "Founder & research" },
@@ -21,9 +23,11 @@ export function PartnerStrip() {
         </div>
 
         <ul className="mt-8 grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-3 md:grid-cols-5">
-          {PARTNERS.map((partner) => (
-            <li
+          {PARTNERS.map((partner, i) => (
+            <Reveal
+              as="li"
               key={partner.name}
+              delay={i * 70}
               className="flex flex-col items-center text-center"
             >
               <div className="font-serif text-xl text-ivory md:text-[1.65rem]">
@@ -32,7 +36,7 @@ export function PartnerStrip() {
               <div className="mt-1 text-[0.6rem] uppercase tracking-ultra-wide text-ivory/45">
                 {partner.note}
               </div>
-            </li>
+            </Reveal>
           ))}
         </ul>
       </div>

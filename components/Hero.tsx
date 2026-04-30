@@ -65,7 +65,7 @@ export function Hero() {
         </a>
 
         <div className="relative flex items-center justify-center">
-          <div className="relative h-[420px] w-[420px] max-w-full">
+          <div className="relative h-[420px] w-[420px] max-w-full tin-float">
             <div className="absolute inset-0 rounded-full bg-sky/10 blur-3xl" />
             <ZibsTin />
           </div>

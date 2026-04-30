@@ -9,6 +9,7 @@ import { Mechanism } from "@/components/Mechanism";
 import { Nav } from "@/components/Nav";
 import { PartnerStrip } from "@/components/PartnerStrip";
 import { Reserve } from "@/components/Reserve";
+import { Specs } from "@/components/Specs";
 import { Stats } from "@/components/Stats";
 import { Timeline } from "@/components/Timeline";
 
@@ -18,10 +19,11 @@ export default function Home() {
       <Nav />
       <Hero />
       <PartnerStrip />
-      <Mechanism />
       <Stats />
+      <Mechanism />
       <HowItWorks />
       <Ingredients />
+      <Specs />
       <Timeline />
       <Flavors />
       <Reserve />

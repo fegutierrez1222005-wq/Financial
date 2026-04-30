@@ -1,3 +1,5 @@
+import { Reveal } from "./Reveal";
+
 const PHASES = [
   {
     label: "20 minutes",
@@ -48,8 +50,10 @@ export function Timeline() {
 
         <ol className="relative grid gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/5 md:grid-cols-4">
           {PHASES.map((phase, index) => (
-            <li
+            <Reveal
+              as="li"
               key={phase.label}
+              delay={index * 90}
               className="relative flex flex-col bg-navy-deep p-7 md:p-8"
             >
               <div className="font-serif text-5xl leading-none text-sky/70">
@@ -64,7 +68,7 @@ export function Timeline() {
               <p className="mt-3 text-sm leading-relaxed text-ivory/65">
                 {phase.body}
               </p>
-            </li>
+            </Reveal>
           ))}
         </ol>
       </div>

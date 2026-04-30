@@ -38,23 +38,28 @@ export function HowItWorks() {
         </p>
       </div>
 
-      <div className="mt-16 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/5 md:grid-cols-3">
-        {STEPS.map((step) => (
-          <div
-            key={step.number}
-            className="relative bg-navy p-8 md:p-10"
-          >
-            <div className="font-serif text-7xl text-sky/70">
-              {step.number}
-            </div>
-            <h3 className="mt-5 font-serif text-2xl text-ivory md:text-3xl">
-              {step.title}
-            </h3>
-            <p className="mt-4 text-sm leading-relaxed text-ivory/70 md:text-base">
-              {step.body}
-            </p>
-          </div>
-        ))}
+      <div className="relative mt-20">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-0 right-0 top-[2.3rem] hidden h-px bg-gradient-to-r from-transparent via-sky/40 to-transparent md:block"
+        />
+        <ol className="grid gap-12 md:grid-cols-3 md:gap-8">
+          {STEPS.map((step) => (
+            <li key={step.number} className="relative">
+              <div className="flex items-center gap-4 md:flex-col md:items-start">
+                <span className="relative inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-sky/40 bg-navy text-[0.7rem] uppercase tracking-ultra-wide text-sky md:h-[4.6rem] md:w-[4.6rem] md:text-base">
+                  {step.number}
+                </span>
+                <h3 className="font-serif text-2xl text-ivory md:mt-7 md:text-3xl">
+                  {step.title}
+                </h3>
+              </div>
+              <p className="mt-4 max-w-md text-sm leading-relaxed text-ivory/70 md:mt-5 md:text-base">
+                {step.body}
+              </p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

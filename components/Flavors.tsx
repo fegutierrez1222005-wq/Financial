@@ -1,3 +1,5 @@
+import { Reveal } from "./Reveal";
+
 const FLAVORS = [
   {
     name: "Wintergreen",
@@ -37,8 +39,10 @@ export function Flavors() {
         </div>
 
         <ul className="grid gap-6 md:grid-cols-3">
-          {FLAVORS.map((flavor) => (
-            <li
+          {FLAVORS.map((flavor, index) => (
+            <Reveal
+              as="li"
+              delay={index * 100}
               key={flavor.name}
               className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-7 transition hover:border-sky/30"
             >
@@ -59,7 +63,7 @@ export function Flavors() {
                   Coming soon
                 </span>
               </div>
-            </li>
+            </Reveal>
           ))}
         </ul>
       </div>

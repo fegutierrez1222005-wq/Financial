@@ -1,3 +1,5 @@
+import { Reveal } from "./Reveal";
+
 const TAKES = [
   "Restricts blood flow to gum tissue",
   "Accelerates collagen breakdown",
@@ -20,7 +22,7 @@ export function Mechanism() {
       </div>
 
       <div className="relative mx-auto max-w-6xl px-6 md:px-10">
-        <div className="mb-14 max-w-3xl">
+        <Reveal className="mb-14 max-w-3xl">
           <span className="eyebrow">Net zero damage</span>
           <h2 className="mt-4 font-serif text-4xl leading-[1.05] text-ivory md:text-6xl">
             Keep the ritual.
@@ -32,18 +34,21 @@ export function Mechanism() {
             twenty-minute window that&apos;s costing you collagen can give it
             back.
           </p>
-        </div>
+        </Reveal>
 
-        <div className="grid gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/5 md:grid-cols-2">
-          <div className="bg-navy-deep p-8 md:p-10">
-            <div className="text-[0.7rem] uppercase tracking-ultra-wide text-ivory/50">
+        <Reveal
+          delay={120}
+          className="relative grid overflow-hidden rounded-3xl border border-white/10 md:grid-cols-2"
+        >
+          <div className="relative bg-[#091226] p-8 md:p-12">
+            <div className="text-[0.7rem] uppercase tracking-ultra-wide text-ivory/40">
               Nicotine takes
             </div>
-            <ul className="mt-6 space-y-4">
+            <ul className="mt-7 space-y-4">
               {TAKES.map((line) => (
                 <li
                   key={line}
-                  className="flex items-start gap-3 text-base text-ivory/65 md:text-lg"
+                  className="flex items-start gap-3 text-base text-ivory/45 line-through decoration-ivory/30 decoration-[1.5px] md:text-lg"
                 >
                   <Minus />
                   <span>{line}</span>
@@ -52,11 +57,11 @@ export function Mechanism() {
             </ul>
           </div>
 
-          <div className="bg-navy p-8 md:p-10">
+          <div className="relative border-t border-white/10 bg-navy p-8 md:border-l md:border-t-0 md:p-12">
             <div className="text-[0.7rem] uppercase tracking-ultra-wide text-sky">
               Zibs gives back
             </div>
-            <ul className="mt-6 space-y-4">
+            <ul className="mt-7 space-y-4">
               {GIVES.map((line) => (
                 <li
                   key={line}
@@ -68,7 +73,16 @@ export function Mechanism() {
               ))}
             </ul>
           </div>
-        </div>
+
+          <div className="pointer-events-none absolute left-1/2 top-1/2 hidden h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-navy text-[0.6rem] uppercase tracking-ultra-wide text-sky md:flex">
+            vs
+          </div>
+        </Reveal>
+
+        <p className="mt-10 max-w-3xl text-sm leading-relaxed text-ivory/55 md:text-base">
+          Same form factor. Same twenty-minute window. The active ingredients
+          are doing the opposite job.
+        </p>
       </div>
     </section>
   );

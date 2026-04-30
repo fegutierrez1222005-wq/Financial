@@ -1,27 +1,35 @@
 const INGREDIENTS = [
   {
+    index: "01",
     name: "Collagen Amino Acids",
     formula: "L-Glycine · L-Proline · L-Hydroxyproline",
     share: "18–28%",
+    sharePct: 28,
     note: "Rate-limiting factors in gum tissue collagen synthesis.",
   },
   {
-    name: "Coenzyme Q10",
-    formula: "β-cyclodextrin encapsulated",
-    share: "1–2%",
-    note: "Documented deficient in periodontal tissue. Reduces pocket depth.",
-  },
-  {
-    name: "Vitamin C",
-    formula: "Ascorbic acid",
-    share: "3–5%",
-    note: "Essential cofactor for collagen synthesis. Confirmed buccal absorption.",
-  },
-  {
+    index: "02",
     name: "HPMC Polymer",
     formula: "Medical-grade mucoadhesive · FDA GRAS",
     share: "15–20%",
+    sharePct: 20,
     note: "Holds the pouch in place and controls timed release.",
+  },
+  {
+    index: "03",
+    name: "Vitamin C",
+    formula: "Ascorbic acid",
+    share: "3–5%",
+    sharePct: 5,
+    note: "Essential cofactor for collagen synthesis. Confirmed buccal absorption.",
+  },
+  {
+    index: "04",
+    name: "Coenzyme Q10",
+    formula: "β-cyclodextrin encapsulated",
+    share: "1–2%",
+    sharePct: 2,
+    note: "Documented deficient in periodontal tissue. Reduces pocket depth.",
   },
 ];
 
@@ -49,21 +57,35 @@ export function Ingredients() {
           {INGREDIENTS.map((ingredient) => (
             <li
               key={ingredient.name}
-              className="grid grid-cols-1 items-center gap-2 py-7 md:grid-cols-[1.1fr_1.4fr_0.5fr] md:gap-8"
+              className="grid grid-cols-[2.5rem_1fr] items-start gap-x-5 gap-y-3 py-8 md:grid-cols-[3rem_1.4fr_1.4fr_6rem] md:items-center md:gap-x-8"
             >
+              <span className="font-serif text-base text-sky md:text-lg">
+                {ingredient.index}
+              </span>
+
               <div>
-                <h3 className="font-serif text-2xl text-ivory md:text-3xl">
+                <h3 className="font-serif text-2xl text-ivory md:text-[1.85rem]">
                   {ingredient.name}
                 </h3>
-                <p className="mt-1 text-xs uppercase tracking-ultra-wide text-sky">
+                <p className="mt-1 text-[0.7rem] uppercase tracking-ultra-wide text-sky">
                   {ingredient.formula}
                 </p>
               </div>
-              <p className="text-sm leading-relaxed text-ivory/70 md:text-base">
+
+              <p className="col-start-2 text-sm leading-relaxed text-ivory/70 md:col-start-auto md:text-base">
                 {ingredient.note}
               </p>
-              <div className="font-serif text-3xl text-ivory/90 md:text-right md:text-4xl">
-                {ingredient.share}
+
+              <div className="col-start-2 md:col-start-auto md:text-right">
+                <div className="font-serif text-2xl text-ivory md:text-3xl">
+                  {ingredient.share}
+                </div>
+                <div className="mt-2 h-[3px] w-full overflow-hidden rounded-full bg-white/10 md:ml-auto md:max-w-[5rem]">
+                  <div
+                    className="h-full bg-sky"
+                    style={{ width: `${(ingredient.sharePct / 30) * 100}%` }}
+                  />
+                </div>
               </div>
             </li>
           ))}

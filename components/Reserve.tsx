@@ -37,39 +37,49 @@ export function Reserve() {
             </div>
           </div>
 
-          <div className="flex flex-col justify-between gap-8 p-8 md:p-12">
+          <div className="flex flex-col gap-7 p-8 md:p-10">
             <div>
-              <div className="text-xs uppercase tracking-ultra-wide text-sky">
-                {PRODUCT.description}
+              <div className="flex items-center justify-between">
+                <div className="text-[0.7rem] uppercase tracking-ultra-wide text-sky">
+                  {PRODUCT.description}
+                </div>
+                <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[0.6rem] uppercase tracking-ultra-wide text-ivory/55">
+                  Pre-launch
+                </span>
               </div>
-              <h3 className="mt-3 font-serif text-3xl text-ivory md:text-4xl">
+              <h3 className="mt-3 font-serif text-3xl text-ivory md:text-[2.4rem]">
                 {PRODUCT.name}
               </h3>
-              <div className="mt-2 font-serif text-4xl text-ivory md:text-5xl">
-                {formatPrice(PRODUCT.priceCents)}
-                <span className="ml-2 text-base text-ivory/45">/ tin</span>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="font-serif text-4xl text-ivory md:text-5xl">
+                  {formatPrice(PRODUCT.priceCents)}
+                </span>
+                <span className="text-base text-ivory/45">/ tin</span>
               </div>
-
-              <ul className="mt-7 space-y-2.5 text-sm text-ivory/75">
-                {FEATURES.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3">
-                    <span
-                      aria-hidden
-                      className="mt-1.5 h-1 w-3 flex-shrink-0 bg-sky"
-                    />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
 
-            <div className="space-y-3">
+            <ul className="grid grid-cols-2 gap-3 border-t border-white/10 pt-5 text-sm text-ivory/75">
+              {FEATURES.map((feature) => (
+                <li
+                  key={feature}
+                  className="flex items-start gap-2.5 leading-snug"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-1.5 h-1 w-2.5 flex-shrink-0 bg-sky"
+                  />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-auto space-y-2.5">
               <button
                 type="button"
                 onClick={addToCart}
                 className="w-full rounded-full bg-sky px-6 py-3.5 text-sm font-semibold text-navy transition hover:bg-sky-soft"
               >
-                Add to cart
+                Add to cart · {formatPrice(PRODUCT.priceCents)}
               </button>
 
               {quantity > 0 && (
@@ -82,7 +92,7 @@ export function Reserve() {
                 </button>
               )}
 
-              <p className="pt-2 text-center text-[0.7rem] uppercase tracking-ultra-wide text-ivory/40">
+              <p className="pt-1 text-center text-[0.65rem] uppercase tracking-ultra-wide text-ivory/40">
                 Adjust quantity in cart · No charge today
               </p>
             </div>

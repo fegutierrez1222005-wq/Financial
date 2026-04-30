@@ -2,19 +2,40 @@ import { Reveal } from "./Reveal";
 
 const FLAVORS = [
   {
+    id: "wintergreen",
     name: "Wintergreen",
     note: "Cool, classic, gum-friendly",
-    accent: "from-sky/40 via-sky/10 to-transparent",
+    palette: {
+      face: ["#0e2148", "#0a1530", "#04091a"] as [string, string, string],
+      rim: ["#a8c4e0", "#3c5b8a"] as [string, string],
+      label: "#a8c4e0",
+      glow: "from-sky/30 via-sky/5 to-transparent",
+      tag: "WINTERGREEN",
+    },
   },
   {
+    id: "cool-mint",
     name: "Cool Mint",
     note: "Crisp peppermint, low sweetness",
-    accent: "from-emerald-200/30 via-sky/10 to-transparent",
+    palette: {
+      face: ["#0c3030", "#072020", "#021212"] as [string, string, string],
+      rim: ["#c7eee0", "#3a7e74"] as [string, string],
+      label: "#bce6d4",
+      glow: "from-emerald-300/25 via-teal-300/10 to-transparent",
+      tag: "COOL MINT",
+    },
   },
   {
+    id: "citrus",
     name: "Citrus",
     note: "Bright, Vitamin-C forward",
-    accent: "from-amber-200/30 via-sky/10 to-transparent",
+    palette: {
+      face: ["#3a2410", "#241608", "#120a04"] as [string, string, string],
+      rim: ["#f6d8a4", "#a06d2c"] as [string, string],
+      label: "#f0c98a",
+      glow: "from-amber-300/30 via-orange-300/10 to-transparent",
+      tag: "CITRUS",
+    },
   },
 ];
 
@@ -43,14 +64,20 @@ export function Flavors() {
             <Reveal
               as="li"
               delay={index * 100}
-              key={flavor.name}
+              key={flavor.id}
               className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-7 transition hover:border-sky/30"
             >
               <div
-                className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${flavor.accent} opacity-70 transition group-hover:opacity-100`}
+                className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${flavor.palette.glow} opacity-70 transition group-hover:opacity-100`}
               />
               <div className="relative flex h-56 items-center justify-center">
-                <FlavorTin label={flavor.name} />
+                <FlavorTin
+                  id={flavor.id}
+                  tag={flavor.palette.tag}
+                  face={flavor.palette.face}
+                  rim={flavor.palette.rim}
+                  label={flavor.palette.label}
+                />
               </div>
               <div className="relative mt-6 flex items-end justify-between">
                 <div>
@@ -71,27 +98,45 @@ export function Flavors() {
   );
 }
 
-function FlavorTin({ label }: { label: string }) {
+function FlavorTin({
+  id,
+  tag,
+  face,
+  rim,
+  label,
+}: {
+  id: string;
+  tag: string;
+  face: [string, string, string];
+  rim: [string, string];
+  label: string;
+}) {
+  const faceId = `face-${id}`;
+  const rimId = `rim-${id}`;
   return (
     <svg viewBox="0 0 320 220" className="h-full w-full" aria-hidden>
       <defs>
-        <radialGradient id={`face-${label}`} cx="50%" cy="42%" r="60%">
-          <stop offset="0%" stopColor="#1c3360" />
-          <stop offset="60%" stopColor="#0d1f3c" />
-          <stop offset="100%" stopColor="#050d1f" />
+        <radialGradient id={faceId} cx="38%" cy="32%" r="78%">
+          <stop offset="0%" stopColor={face[0]} />
+          <stop offset="60%" stopColor={face[1]} />
+          <stop offset="100%" stopColor={face[2]} />
         </radialGradient>
+        <linearGradient id={rimId} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={rim[0]} />
+          <stop offset="100%" stopColor={rim[1]} />
+        </linearGradient>
       </defs>
       <ellipse cx="160" cy="190" rx="120" ry="12" fill="#000" opacity="0.45" />
-      <ellipse cx="160" cy="120" rx="130" ry="38" fill="#a8c4e0" opacity="0.7" />
-      <ellipse cx="160" cy="112" rx="130" ry="38" fill="#0d1f3c" />
-      <ellipse cx="160" cy="112" rx="130" ry="38" fill={`url(#face-${label})`} />
+      <ellipse cx="160" cy="120" rx="130" ry="38" fill={`url(#${rimId})`} opacity="0.85" />
+      <ellipse cx="160" cy="112" rx="130" ry="38" fill={face[1]} />
+      <ellipse cx="160" cy="112" rx="130" ry="38" fill={`url(#${faceId})`} />
       <ellipse
         cx="160"
         cy="106"
         rx="130"
         ry="36"
         fill="none"
-        stroke="#a8c4e0"
+        stroke={rim[0]}
         strokeOpacity="0.5"
         strokeWidth="1.2"
       />
@@ -112,10 +157,10 @@ function FlavorTin({ label }: { label: string }) {
         textAnchor="middle"
         fontFamily="DM Sans, sans-serif"
         fontSize="7"
-        fill="#a8c4e0"
+        fill={label}
         letterSpacing="4"
       >
-        {label.toUpperCase()} · 30 CT
+        {tag} · 30 CT
       </text>
     </svg>
   );

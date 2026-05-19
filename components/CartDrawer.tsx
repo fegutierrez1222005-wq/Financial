@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatPrice, PRODUCT, useCart } from "./CartProvider";
+import { Tin } from "./Tin";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -200,7 +201,7 @@ function CartLine({
   return (
     <div className="flex gap-4">
       <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-navy">
-        <MiniTin />
+        <Tin shadow={false} caption="30 CT" className="h-full w-full" />
       </div>
       <div className="flex-1">
         <div className="font-serif text-xl text-ivory">{PRODUCT.name}</div>
@@ -275,33 +276,3 @@ function SuccessState() {
   );
 }
 
-function MiniTin() {
-  return (
-    <svg viewBox="0 0 96 96" className="h-full w-full" aria-hidden>
-      <ellipse cx="48" cy="76" rx="34" ry="5" fill="#000" opacity="0.5" />
-      <ellipse cx="48" cy="56" rx="38" ry="11" fill="#a8c4e0" opacity="0.7" />
-      <ellipse cx="48" cy="52" rx="38" ry="11" fill="#0d1f3c" />
-      <ellipse
-        cx="48"
-        cy="49"
-        rx="38"
-        ry="10"
-        fill="none"
-        stroke="#a8c4e0"
-        strokeOpacity="0.55"
-        strokeWidth="1"
-      />
-      <text
-        x="48"
-        y="55"
-        textAnchor="middle"
-        fontFamily="Cormorant Garamond, serif"
-        fontSize="14"
-        fill="#f5f1e8"
-        letterSpacing="2"
-      >
-        ZIBS
-      </text>
-    </svg>
-  );
-}

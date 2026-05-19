@@ -2,6 +2,7 @@
 
 import { formatPrice, PRODUCT, useCart } from "./CartProvider";
 import { Reveal } from "./Reveal";
+import { Tin } from "./Tin";
 
 const FEATURES = [
   "30 mucoadhesive pouches",
@@ -38,9 +39,7 @@ export function Reserve() {
         >
           <div className="relative flex items-center justify-center bg-navy-deep px-6 py-12 md:px-10 md:py-16">
             <div className="absolute inset-0 bg-gradient-to-br from-sky/10 via-transparent to-transparent" />
-            <div className="relative h-72 w-72 max-w-full md:h-80 md:w-80">
-              <ZibsTinPanel />
-            </div>
+            <Tin className="relative h-72 w-72 max-w-full md:h-80 md:w-80" />
           </div>
 
           <div className="flex flex-col gap-7 p-8 md:p-10">
@@ -109,91 +108,3 @@ export function Reserve() {
   );
 }
 
-function ZibsTinPanel() {
-  return (
-    <svg
-      viewBox="0 0 320 320"
-      className="h-full w-full"
-      role="img"
-      aria-label="Zibs tin"
-    >
-      <defs>
-        <radialGradient id="tinFace2" cx="50%" cy="42%" r="60%">
-          <stop offset="0%" stopColor="#1c3360" />
-          <stop offset="60%" stopColor="#0d1f3c" />
-          <stop offset="100%" stopColor="#050d1f" />
-        </radialGradient>
-        <linearGradient id="tinRim2" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#a8c4e0" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#3c5b8a" stopOpacity="0.6" />
-        </linearGradient>
-        <linearGradient id="tinShine2" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#a8c4e0" stopOpacity="0" />
-          <stop offset="50%" stopColor="#a8c4e0" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#a8c4e0" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <ellipse cx="160" cy="260" rx="120" ry="16" fill="#000" opacity="0.55" />
-      <ellipse
-        cx="160"
-        cy="190"
-        rx="130"
-        ry="38"
-        fill="url(#tinRim2)"
-        opacity="0.85"
-      />
-      <ellipse cx="160" cy="180" rx="130" ry="38" fill="#0d1f3c" />
-      <ellipse cx="160" cy="180" rx="130" ry="38" fill="url(#tinFace2)" />
-      <ellipse
-        cx="160"
-        cy="174"
-        rx="130"
-        ry="36"
-        fill="none"
-        stroke="#a8c4e0"
-        strokeOpacity="0.55"
-        strokeWidth="1.4"
-      />
-      <ellipse
-        cx="160"
-        cy="180"
-        rx="118"
-        ry="32"
-        fill="none"
-        stroke="#a8c4e0"
-        strokeOpacity="0.18"
-        strokeWidth="1"
-      />
-      <rect
-        x="20"
-        y="170"
-        width="280"
-        height="12"
-        fill="url(#tinShine2)"
-        opacity="0.55"
-      />
-      <text
-        x="160"
-        y="176"
-        textAnchor="middle"
-        fontFamily="Cormorant Garamond, serif"
-        fontSize="42"
-        fill="#f5f1e8"
-        letterSpacing="5"
-      >
-        ZIBS
-      </text>
-      <text
-        x="160"
-        y="196"
-        textAnchor="middle"
-        fontFamily="DM Sans, sans-serif"
-        fontSize="7"
-        fill="#a8c4e0"
-        letterSpacing="5"
-      >
-        GUM HEALTH POUCH · 30 CT
-      </text>
-    </svg>
-  );
-}

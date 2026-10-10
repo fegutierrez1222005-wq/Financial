@@ -1,0 +1,115 @@
+# Sandbox bootstrap. Written into a temporary directory and executed by PythonSandbox with
+# `python -I -B`. Not imported by the application.
+import builtins
+import contextlib
+import io
+import json
+import sys
+import time
+import traceback
+
+_real_exec = exec
+_real_compile = compile
+_real_import = builtins.__import__
+_real_open = open
+
+RESULT_PATH = sys.argv[1]
+CODE_PATH = sys.argv[2]
+ALLOWED = set(json.loads(sys.argv[3]))
+USER_CODE_NAME = "<sandbox>"
+
+import socket
+
+
+def _no_network(*args, **kwargs):
+    raise OSError("network access is disabled in the sandbox")
+
+
+for _attr in ("socket", "create_connection", "socketpair", "getaddrinfo", "gethostbyname"):
+    if hasattr(socket, _attr):
+        setattr(socket, _attr, _no_network)
+
+# Pre-import the heavyweight allowed libraries so their own lazy imports resolve before user
+# code runs under the restricted builtins.
+for _preload in ("json", "math", "statistics", "datetime", "re", "collections", "itertools",
+                 "functools", "decimal", "random", "numpy", "pandas"):
+    if _preload in ALLOWED:
+        try:
+            _real_import(_preload)
+        except Exception:
+            pass
+
+with _real_open(CODE_PATH, "r", encoding="utf-8") as handle:
+    source = handle.read()
+
+
+def _guarded_import(name, globals=None, locals=None, fromlist=(), level=0):
+    """Import hook exposed only to submitted code.
+
+    Library internals keep using the interpreter's real ``__import__`` because this function
+    is installed in the sandbox namespace's ``__builtins__``, not globally.
+    """
+    root = name.split(".")[0]
+    if root not in ALLOWED:
+        raise ImportError("import of '%s' is not permitted in the sandbox" % name)
+    return _real_import(name, globals, locals, fromlist, level)
+
+
+_SAFE_BUILTIN_NAMES = (
+    "abs all any ascii bin bool bytearray bytes callable chr complex dict divmod enumerate "
+    "filter float format frozenset hash hex id int isinstance issubclass iter len list map max "
+    "min next object oct ord pow print property range repr reversed round set setattr slice "
+    "sorted staticmethod str sum super tuple type zip classmethod dir hasattr getattr"
+).split()
+_SAFE_EXCEPTIONS = (
+    "ArithmeticError AssertionError AttributeError BaseException Exception FloatingPointError "
+    "ImportError IndexError KeyError KeyboardInterrupt LookupError MemoryError NameError "
+    "NotImplementedError OverflowError RecursionError RuntimeError StopIteration TypeError "
+    "UnicodeDecodeError UnicodeEncodeError ValueError ZeroDivisionError Warning"
+).split()
+
+safe_builtins = {
+    "__import__": _guarded_import,
+    "__build_class__": builtins.__build_class__,
+    "__name__": "__sandbox__",
+    "True": True,
+    "False": False,
+    "None": None,
+}
+for _name in _SAFE_BUILTIN_NAMES + _SAFE_EXCEPTIONS:
+    if hasattr(builtins, _name):
+        safe_builtins[_name] = getattr(builtins, _name)
+
+namespace = {"__name__": "__sandbox__", "__builtins__": safe_builtins}
+code_object = _real_compile(source, USER_CODE_NAME, "exec")
+
+stdout_buffer, stderr_buffer = io.StringIO(), io.StringIO()
+payload = {"stdout": "", "stderr": "", "results": {}, "error": None, "execution_time_ms": 0}
+started = time.perf_counter()
+try:
+    with contextlib.redirect_stdout(stdout_buffer), contextlib.redirect_stderr(stderr_buffer):
+        _real_exec(code_object, namespace)
+except BaseException:
+    payload["error"] = traceback.format_exc(limit=6)
+finally:
+    payload["execution_time_ms"] = int((time.perf_counter() - started) * 1000)
+    payload["stdout"] = stdout_buffer.getvalue()[:20000]
+    payload["stderr"] = stderr_buffer.getvalue()[:20000]
+    raw_results = namespace.get("results", namespace.get("result"))
+    if isinstance(raw_results, dict):
+        cleaned = {}
+        for key, value in raw_results.items():
+            try:
+                json.dumps(value)
+                cleaned[str(key)] = value
+            except (TypeError, ValueError):
+                cleaned[str(key)] = str(value)
+        payload["results"] = cleaned
+    elif raw_results is not None:
+        try:
+            json.dumps(raw_results)
+            payload["results"] = {"result": raw_results}
+        except (TypeError, ValueError):
+            payload["results"] = {"result": str(raw_results)}
+    with _real_open(RESULT_PATH, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle)

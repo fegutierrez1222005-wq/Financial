@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finagent-backtesting"
+version = "0.1.0"
+description = "Controlled backtesting engine with look-ahead protection for FINAGENT LAB"
+requires-python = ">=3.11"
+dependencies = [
+    "finagent-core",
+    "pandas>=2.2",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+include = ["finagent_backtesting*"]

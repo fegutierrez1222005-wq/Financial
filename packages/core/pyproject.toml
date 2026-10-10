@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finagent-core"
+version = "0.1.0"
+description = "FINAGENT LAB shared domain core: providers, errors, logging, historical cutoff"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.6",
+    "httpx>=0.27",
+    "numpy>=1.26",
+    "python-dateutil>=2.9",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+include = ["finagent_core*"]

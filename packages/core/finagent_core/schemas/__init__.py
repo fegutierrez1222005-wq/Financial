@@ -1,0 +1,60 @@
+"""Shared domain schemas (framework-free Pydantic models)."""
+
+from finagent_core.schemas.enums import (
+    AlertSeverity,
+    BacktestSplit,
+    ClaimSupport,
+    DocumentStatus,
+    EvaluationDimension,
+    OutputFormat,
+    RebalanceFrequency,
+    ResearchStepKind,
+    RunStatus,
+    TaskTemplate,
+    ToolName,
+    UsageKind,
+    WorkspaceRole,
+)
+from finagent_core.schemas.research import (
+    AgentRunSpec,
+    CitationRecord,
+    Claim,
+    EvidenceItem,
+    RunResult,
+    TaskSpec,
+    ToolCallRecord,
+    TraceStep,
+    UsageSummary,
+)
+from finagent_core.schemas.templates import TASK_TEMPLATES, TaskTemplateDefinition, get_template
+from finagent_core.schemas.thesis import InvestmentThesis, ValuationView
+
+__all__ = [
+    "AlertSeverity",
+    "BacktestSplit",
+    "ClaimSupport",
+    "DocumentStatus",
+    "EvaluationDimension",
+    "OutputFormat",
+    "RebalanceFrequency",
+    "ResearchStepKind",
+    "RunStatus",
+    "TaskTemplate",
+    "ToolName",
+    "UsageKind",
+    "WorkspaceRole",
+    "AgentRunSpec",
+    "CitationRecord",
+    "Claim",
+    "EvidenceItem",
+    "RunResult",
+    "TaskSpec",
+    "ToolCallRecord",
+    "TraceStep",
+    "UsageSummary",
+    "TASK_TEMPLATES",
+    "TaskTemplateDefinition",
+    "get_template",
+    "InvestmentThesis",
+    "ValuationView",
+]

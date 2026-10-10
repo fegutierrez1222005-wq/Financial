@@ -604,6 +604,7 @@ class EvaluationDetailResponse(ApiModel):
 
 
 class ScoreboardEntry(ApiModel):
+    rank: int
     evaluation_id: str
     agent_id: str
     agent_name: str | None
@@ -615,7 +616,9 @@ class ScoreboardEntry(ApiModel):
     pass_rate: float | None
     hallucination_rate: float | None
     citation_coverage: float | None
-    finished_at: datetime | None
+    dimension_scores: dict[str, float] = Field(default_factory=dict)
+    judge_is_mock: bool = False
+    evaluated_at: datetime | None = None
 
 
 # -------------------------------------------------------------------- backtesting
@@ -728,7 +731,9 @@ class ExperimentArmRequest(ApiModel):
 
 class ExperimentCreateRequest(ApiModel):
     name: str = Field(min_length=1, max_length=200)
-    variable: Literal["model", "prompt", "tools", "agent"] = "model"
+    variable: Literal["model", "prompt_version", "agent_version", "tools"] = Field(
+        default="model", description="The single thing that differs between arms."
+    )
     suite_key: str
     arms: list[ExperimentArmRequest] = Field(min_length=2, max_length=8)
     hypothesis: str | None = Field(default=None, max_length=2000)
@@ -1020,7 +1025,10 @@ class SubscriptionResponse(ApiModel):
 class DemoSeedResponse(ApiModel):
     workspace_id: str
     workspace_name: str
-    agent_ids: list[str]
-    document_ids: list[str]
+    documents: list[str]
+    document_count: int
+    evaluation_suites: list[str]
+    agents: list[dict[str, str]]
+    data_source_id: str | None
     backtest_id: str | None
-    notice: str
+    disclaimer: str

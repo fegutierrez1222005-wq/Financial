@@ -39,7 +39,7 @@ HISTORICAL_CUTOFF = datetime(2023, 6, 30, tzinfo=timezone.utc)
 
 
 def run_demo_flow(
-    db: DbSession, *, email: str = "demo@finagent.local", password: str = "demo-password-123"
+    db: DbSession, *, email: str = "demo@finagent.local", password: str = "Demo-Password-123"
 ) -> dict[str, Any]:
     from finagent_api.services.auth_service import CredentialAuthProvider
 
@@ -62,16 +62,21 @@ def run_demo_flow(
     workspace_id = seeded["workspace_id"]
     db.flush()
 
+    by_name = {entry["name"]: entry["id"] for entry in seeded["agents"]}
     good_agent = agent_service.get_agent(
-        db, workspace_id=workspace_id, agent_id=seeded["agent_ids"][0]
+        db, workspace_id=workspace_id, agent_id=by_name[seed_service.DEMO_AGENT_NAME]
     )
+    flawed_id = by_name.get(seed_service.FLAWED_AGENT_NAME)
     flawed_agent = (
-        agent_service.get_agent(db, workspace_id=workspace_id, agent_id=seeded["agent_ids"][1])
-        if len(seeded["agent_ids"]) > 1
+        agent_service.get_agent(db, workspace_id=workspace_id, agent_id=flawed_id)
+        if flawed_id
         else None
     )
 
-    results: dict[str, Any] = {"workspace_id": workspace_id, "notice": seeded["notice"]}
+    results: dict[str, Any] = {
+        "workspace_id": workspace_id,
+        "disclaimer": seeded["disclaimer"],
+    }
     results["good_agent"] = _run_and_score(
         db,
         organization_id=organization.id,
@@ -134,7 +139,7 @@ def _run_and_score(
         draft=research_service.TaskDraft(
             template=TaskTemplate.EARNINGS_ANALYSIS.value,
             question=DEMO_QUESTION,
-            inputs={"ticker": "ACME", "period": "FY2023"},
+            inputs={"ticker": "ACME", "quarter": "Q4 2023", "period": "FY2023"},
             information_cutoff=cutoff,
         ),
         user_id=user_id,

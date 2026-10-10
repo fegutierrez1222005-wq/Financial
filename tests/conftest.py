@@ -134,7 +134,10 @@ def make_account(client: TestClient):  # noqa: ANN201
         headers = {"Authorization": f"Bearer {tokens['access_token']}"}
         workspaces = client.get("/api/v1/workspaces", headers=headers).json()
         assert workspaces, "registration should always create at least one workspace"
-        workspace = workspaces[0]
+        # Prefer the seeded demo workspace when it exists: it has the corpus the tests need.
+        workspace = next(
+            (candidate for candidate in workspaces if candidate["is_demo"]), workspaces[0]
+        )
 
         return Account(
             email=address,

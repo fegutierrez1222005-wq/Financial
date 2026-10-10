@@ -155,9 +155,12 @@ class MockModelProvider(ModelProvider):
         if quality == "weak":
             findings.append(FABRICATED_GROWTH_CLAIM)
 
+        required = [str(field) for field in (task.get("required_output_fields") or [])]
         if output_format == "investment_thesis":
             return self._thesis_json(question, evidence, computed, findings, quality=quality)
-        return self._markdown(question, evidence, computed, findings, quality=quality)
+        return self._markdown(
+            question, evidence, computed, findings, required=required, quality=quality
+        )
 
     def _markdown(
         self,
@@ -166,6 +169,7 @@ class MockModelProvider(ModelProvider):
         computed: dict[str, float],
         findings: list[str],
         *,
+        required: list[str],
         quality: str,
     ) -> str:
         lines = [f"## Analysis: {question}", ""]
@@ -183,6 +187,11 @@ class MockModelProvider(ModelProvider):
         lines += ["### Findings", ""]
         lines += [f"- {finding}" for finding in findings]
         lines.append("")
+
+        if required and quality != "weak":
+            lines += ["### Requested coverage", ""]
+            lines += self._coverage(required, evidence)
+            lines.append("")
 
         if computed:
             lines += ["### Calculations", ""]
@@ -267,6 +276,33 @@ class MockModelProvider(ModelProvider):
                 continue
             findings.append(f"{sentence} {self._citation_marker(item)}" if cite else sentence)
         return findings
+
+    def _coverage(self, required: list[str], evidence: list[dict[str, Any]]) -> list[str]:
+        """Address each requested output field explicitly.
+
+        A field the retrieved evidence does not establish is reported as not established.
+        Saying so is the correct answer; inventing a value to satisfy the contract is not.
+        """
+        lines: list[str] = []
+        for field in required:
+            label = field.replace("_", " ")
+            terms = {token for token in re.findall(r"[a-z]{4,}", label.lower())}
+            best: tuple[int, str, dict[str, Any]] | None = None
+            for item in evidence:
+                sentence = self._informative_sentence(str(item.get("text", "")), label)
+                if not sentence:
+                    continue
+                overlap = len(terms & set(re.findall(r"[a-z]{4,}", sentence.lower())))
+                if overlap and (best is None or overlap > best[0]):
+                    best = (overlap, sentence, item)
+            if best is None:
+                lines.append(
+                    f"- **{label}**: not established by the retrieved evidence under this "
+                    "information cutoff."
+                )
+            else:
+                lines.append(f"- **{label}**: {best[1]} {self._citation_marker(best[2])}")
+        return lines
 
     def _informative_sentence(self, text: str, question: str = "") -> str:
         """Pick a quotable sentence: prose, reasonable length, ideally containing a figure.

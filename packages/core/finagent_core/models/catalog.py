@@ -56,8 +56,9 @@ MODEL_CATALOG: dict[str, ModelInfo] = {
             0.0,
             0.0,
             notes=(
-                "Deliberately flawed fixture: omits citations and asserts an unsupported growth "
-                "figure. Exists so evaluators can be proven to catch failures."
+                "Deterministic local provider, deliberately flawed: omits citations and asserts "
+                "an unsupported growth figure. Exists so evaluators can be proven to catch "
+                "failures. Never use it for research."
             ),
         ),
         ModelInfo(

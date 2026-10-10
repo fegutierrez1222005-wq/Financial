@@ -73,7 +73,7 @@ def _token_response(identity: AuthenticatedIdentity, organization_id: str | None
     "/register",
     response_model=TokenResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create an account, its organization and an optional demo workspace",
+    summary="Create an account, its organization, a workspace and an optional demo workspace",
 )
 def register(payload: RegisterRequest, request: Request, db: Db) -> TokenResponse:
     provider = _provider(db, request)
@@ -84,6 +84,10 @@ def register(payload: RegisterRequest, request: Request, db: Db) -> TokenRespons
         db,
         name=payload.organization_name or f"{payload.full_name or user.email.split('@')[0]}'s org",
         owner=user,
+    )
+    # Every account gets a working workspace; an account without one has no usable product.
+    workspace_service.create_workspace(
+        db, organization=organization, name="My Research", creator=user
     )
     if payload.seed_demo_workspace:
         seed_service.seed_demo_workspace(db, organization=organization, user=user)

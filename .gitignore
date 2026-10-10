@@ -52,3 +52,9 @@ logs/
 
 # Docker
 docker-compose.override.yml
+
+# Next.js
+.next/
+out/
+node_modules/
+next-env.d.ts

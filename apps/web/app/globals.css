@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Inter", "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-ink-950 text-ink-100 antialiased;
+    font-feature-settings: "tnum" 1, "cv05" 1;
+  }
+
+  /* Figures are read in columns, so they are always tabular and monospaced. */
+  .numeric {
+    @apply font-mono tabular-nums;
+  }
+
+  ::selection {
+    @apply bg-signal-info/30;
+  }
+
+  a {
+    @apply underline-offset-2;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded border border-ink-700 bg-ink-900;
+  }
+
+  .panel-header {
+    @apply flex items-baseline justify-between gap-4 border-b border-ink-700 px-4 py-3;
+  }
+
+  .panel-title {
+    @apply text-2xs font-semibold uppercase tracking-[0.14em] text-ink-300;
+  }
+
+  .data-table {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .data-table th {
+    @apply border-b border-ink-700 px-4 py-2 text-left text-2xs font-semibold uppercase tracking-[0.12em] text-ink-400;
+  }
+
+  .data-table td {
+    @apply border-b border-ink-800 px-4 py-2.5 align-top text-ink-200;
+  }
+
+  .data-table tbody tr:hover {
+    @apply bg-ink-850;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-2xs font-semibold uppercase tracking-[0.12em] text-ink-400;
+  }
+
+  .field-input {
+    @apply w-full rounded border border-ink-600 bg-ink-850 px-3 py-2 text-sm text-ink-100
+      placeholder:text-ink-500 focus:border-signal-info focus:outline-none focus:ring-1
+      focus:ring-signal-info/40;
+  }
+
+  .field-hint {
+    @apply mt-1.5 text-2xs leading-relaxed text-ink-400;
+  }
+
+  .button-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded border border-signal-info
+      bg-signal-info/15 px-3.5 py-2 text-sm font-medium text-ink-100 transition-colors
+      hover:bg-signal-info/25 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .button-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded border border-ink-600
+      bg-ink-850 px-3.5 py-2 text-sm text-ink-200 transition-colors hover:border-ink-500
+      hover:bg-ink-800 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .button-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded border border-signal-negative/60
+      bg-signal-negative/10 px-3.5 py-2 text-sm text-ink-100 transition-colors
+      hover:bg-signal-negative/20;
+  }
+}

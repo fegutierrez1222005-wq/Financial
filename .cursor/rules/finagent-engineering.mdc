@@ -1,0 +1,78 @@
+---
+description: Engineering conventions for FINAGENT LAB — testing, error handling, logging, commenting, and the institutional UI style. Read before writing a module or a page.
+alwaysApply: true
+---
+
+# Engineering conventions
+
+> Prioritise correctness over visual polish. A plain interface showing a true number beats
+> a beautiful one showing a plausible one.
+
+## Every major component has
+
+Tests · error handling · logging · authentication · authorisation · validation ·
+documentation. A component missing one of these is not finished.
+
+## Testing
+
+- `tests/security/` holds the seven controls that must never regress. They are integration
+  tests on purpose: a unit test of a helper proves the helper works, not that the control
+  is wired into the path a request takes.
+- Tests run offline against SQLite with no credentials, so there is never an excuse to
+  skip them. Keep it that way: no test may require a network call or a vendor key.
+- Prove the evaluators *discriminate*, not merely that they run. The flawed fixture agent
+  exists so a passing evaluator can be distinguished from a lenient one.
+- Assert the honest behaviour too: that a mock is labelled, that an excluded dimension is
+  excluded, that an unanswerable question is refused.
+
+## Error handling
+
+- Raise a `FinagentError` subclass with a safe user message and useful `details`.
+- Log the internal detail; return the envelope. Never leak a traceback, a SQL fragment or
+  a library name.
+- A failure in a logging call must never fail the operation it describes.
+
+## Logging
+
+- Structured, JSON by default, with correlation ids bound through `log_context`.
+- Event names are snake_case nouns: `research_run_completed`, not `"Run finished!"`.
+- Anything sensitive goes through `redact`.
+
+## Comments
+
+Write a comment only to state something the code cannot:
+
+- **Why** a non-obvious choice was made (why the import guard is a namespace `__builtins__`
+  and not a `builtins` deletion).
+- A **constraint** a future reader would otherwise violate (why evidence with an unknown
+  timestamp is excluded).
+- A **correctness invariant** (why `history_for` excludes the traded bar).
+
+Never narrate what the next line does. Never explain your change to the reviewer in a
+comment — that belongs in the commit message.
+
+## UI
+
+Institutional research terminal, not a consumer SaaS site.
+
+- Dense, high-contrast, restrained. Colour carries meaning (positive / negative / caution /
+  simulated), never decoration.
+- All figures are monospaced and tabular (`.numeric`) so columns line up and digits are
+  comparable at a glance.
+- Missing data renders as an em dash plus an explanation, never as zero and never as a
+  guess.
+- Every simulated or demo artefact carries its badge.
+- Every destructive or expensive action says what it will cost or what it will remove
+  before it runs.
+- Server components fetch; server actions mutate; `"use client"` only where interaction
+  genuinely requires it.
+
+## Build order
+
+Repository → architecture → database → auth → RBAC → agent schema → builder → model
+abstraction → runner → traces → ingestion → RAG → citations → tasks → evaluation → golden
+dataset → scoring → dashboard → observability → backtesting → cutoff → benchmarking →
+experiments → multi-agent → enterprise.
+
+Each layer must work before the next is started. A vertical slice that runs end to end is
+worth more than four horizontal layers that do not.

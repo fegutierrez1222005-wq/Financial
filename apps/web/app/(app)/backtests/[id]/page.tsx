@@ -27,13 +27,17 @@ const SPLIT_LABEL: Record<string, string> = {
 
 const HEADLINE_METRICS = [
   { key: "total_return_pct", label: "Total return", kind: "percent" },
-  { key: "annualised_return_pct", label: "Annualised", kind: "percent" },
+  { key: "cagr_pct", label: "CAGR", kind: "percent" },
   { key: "sharpe_ratio", label: "Sharpe", kind: "number" },
   { key: "sortino_ratio", label: "Sortino", kind: "number" },
   { key: "max_drawdown_pct", label: "Max drawdown", kind: "percent" },
-  { key: "volatility_pct", label: "Volatility", kind: "percent" },
-  { key: "win_rate_pct", label: "Win rate", kind: "percent" },
-  { key: "total_costs_usd", label: "Costs", kind: "usd" },
+  { key: "annualised_volatility_pct", label: "Volatility", kind: "percent" },
+  { key: "win_rate", label: "Win rate", kind: "percent" },
+  { key: "total_costs", label: "Costs paid", kind: "usd" },
+  { key: "calmar_ratio", label: "Calmar", kind: "number" },
+  { key: "profit_factor", label: "Profit factor", kind: "number" },
+  { key: "annual_turnover_pct", label: "Turnover", kind: "percent" },
+  { key: "average_exposure_pct", label: "Avg exposure", kind: "percent" },
 ] as const;
 
 function MetricValue({ kind, value }: { kind: string; value: number | undefined }) {
@@ -120,6 +124,55 @@ function SplitPanel({ split }: { split: BacktestSplit }) {
   );
 }
 
+/**
+ * How much the strategy decayed from the training window to the out-of-sample one.
+ * Shown as a stated verdict rather than a number the reader has to interpret.
+ */
+function OverfittingPanel({ report }: { report: Record<string, unknown> }) {
+  const severity = String(report.severity ?? "INFO");
+  const sharpes = [
+    { label: "Train", value: report.train_sharpe },
+    { label: "Validation", value: report.validation_sharpe },
+    { label: "Test", value: report.test_sharpe },
+  ].filter((entry) => typeof entry.value === "number");
+
+  return (
+    <Panel
+      title="Overfitting check"
+      action={
+        <Badge
+          tone={severity === "ERROR" ? "negative" : severity === "WARNING" ? "caution" : "neutral"}
+        >
+          {severity}
+        </Badge>
+      }
+    >
+      <p className="px-4 py-3 text-2xs leading-relaxed text-ink-300">
+        {String(report.verdict ?? "No verdict was recorded.")}
+      </p>
+      {sharpes.length > 0 ? (
+        <div className="grid grid-cols-3 divide-x divide-ink-800 border-t border-ink-800">
+          {sharpes.map((entry) => (
+            <div key={entry.label} className="px-4 py-3">
+              <div className="text-2xs uppercase tracking-[0.1em] text-ink-400">
+                {entry.label} Sharpe
+              </div>
+              <div className="numeric mt-1 text-sm text-ink-100">
+                {formatNumber(entry.value as number)}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {typeof report.degradation_pct === "number" ? (
+        <div className="border-t border-ink-800 px-4 py-2.5 text-2xs text-ink-400">
+          Degradation from train to test: {formatPercent(report.degradation_pct)}
+        </div>
+      ) : null}
+    </Panel>
+  );
+}
+
 export default async function BacktestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const detail = await apiFetchOrNull<BacktestDetail>(`/backtests/${id}?include_trades=true`);
@@ -181,16 +234,7 @@ export default async function BacktestPage({ params }: { params: Promise<{ id: s
             </div>
           </Panel>
 
-          {detail.overfitting ? (
-            <Panel title="Overfitting check">
-              <div className="px-4 py-3 text-2xs leading-relaxed text-ink-300">
-                {String(
-                  (detail.overfitting as Record<string, unknown>).assessment ??
-                    JSON.stringify(detail.overfitting),
-                )}
-              </div>
-            </Panel>
-          ) : null}
+          {detail.overfitting ? <OverfittingPanel report={detail.overfitting} /> : null}
         </div>
 
         <div className="space-y-4">

@@ -1,0 +1,74 @@
+---
+description: Non-negotiable honesty and integrity rules for FINAGENT LAB. Read before writing any code that produces, stores or displays a financial figure, a score, or a simulation result.
+alwaysApply: true
+---
+
+# Integrity rules
+
+This product exists to tell institutional investors whether their AI is actually right.
+A platform that quietly fabricates, mislabels or overstates is worse than no platform.
+These rules are not style preferences; breaking one is a defect.
+
+## Never fabricate
+
+- **Do not hard-code a financial result.** No invented revenue, margin, price, return or
+  score, anywhere — not in a fixture, not in a placeholder, not "temporarily".
+- **Do not create fake analytics.** A metric with no computation behind it must not render.
+- **Do not create a button that does nothing.** Every control submits real work or is not
+  there.
+- When data is missing, render the empty state and say what is missing. An em dash with an
+  explanation beats a plausible number.
+
+## Label everything simulated
+
+If an external API is unavailable: build the provider abstraction, build a mock provider,
+and **label its output everywhere it appears**.
+
+- A mock model provider reports `ProviderStatus.MOCK`, never `AVAILABLE`, and sets
+  `is_mock=True` on every response.
+- A run that used one sets `used_mock_model`; demo-derived evidence sets `used_demo_data`.
+- The UI badges both. Never allow simulated output to render as if it were live.
+- A provider with no credentials is `unavailable`. It must **not** silently fall back to
+  synthetic data.
+
+## Never let an agent see the future
+
+- The information cutoff is enforced **structurally** — in SQL filters, in provider
+  `_enforce_cutoff` calls, and in `PriceDataset.history_for`, which excludes the bar being
+  traded.
+- Never implement a cutoff as a prompt instruction. A model asked not to look has no
+  mechanism to comply.
+- **A record with an unknown publication timestamp is inadmissible under a cutoff.**
+  Unknown provenance cannot be proven to precede the cutoff.
+
+## Backtests state their assumptions
+
+- Do not claim a backtest is valid unless it uses timestamped historical data.
+- `signal_lag_days` defaults to 1. Zero is a look-ahead error: run it so the user can see
+  why, but mark it `is_valid = false` with a blocking finding.
+- Commissions and slippage are always applied and always reported.
+- Train, validation and out-of-sample results are reported separately and **never
+  averaged**. Count out-of-sample reuse and show the count.
+- State what is not modelled (market impact, borrow, point-in-time index membership).
+
+## A score is not a prediction
+
+- Never imply a score predicts investment returns. It is an agent-quality score measuring
+  evidence grounding, citation accuracy, numerical correctness and instruction adherence.
+- Never rank on investment return. Rank on quality dimensions and cost efficiency.
+- The interpretation sentence travels with the score, in the API response and on the page.
+
+## Evaluation cannot be gamed
+
+- **Do not rely exclusively on LLM judges.** Deterministic 1.0, programmatic 0.9,
+  LLM judge 0.35. A judge must never be able to outvote a deterministic check.
+- A dimension nobody measured is **excluded and the weights renormalised** — never scored
+  zero, which would punish an agent for the evaluator's blind spot.
+- Assumptions and explicit unknowns are not hallucinations. Do not count them as such.
+
+## Scope boundaries
+
+- No automated live trading. There is no execution path, by design.
+- No financial advice, and no retail users.
+- Never use customer data to train models by default. State plainly: *Customer data is
+  isolated and is not used for model training unless explicitly authorized.*

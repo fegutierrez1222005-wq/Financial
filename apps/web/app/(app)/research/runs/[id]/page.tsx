@@ -104,13 +104,26 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
           <Metric label="Evidence" value={run.evidence_count} />
           <Metric
             label="Citation coverage"
-            value={formatRatioAsPercent(run.citation_coverage)}
-            hint="Claims with a source"
+            value={
+              run.citation_coverage === null
+                ? "not scored"
+                : formatRatioAsPercent(run.citation_coverage)
+            }
+            hint={
+              run.citation_coverage === null
+                ? "Run an evaluation to measure this"
+                : "Claims with a source"
+            }
           />
           <Metric
             label="Hallucination"
-            value={formatRatioAsPercent(run.hallucination_rate)}
-            tone={run.hallucination_rate ? "negative" : "positive"}
+            value={
+              run.hallucination_rate === null
+                ? "not scored"
+                : formatRatioAsPercent(run.hallucination_rate)
+            }
+            hint={run.hallucination_rate === null ? "Run an evaluation to measure this" : undefined}
+            tone={run.hallucination_rate ? "negative" : "neutral"}
           />
           <Metric label="Tool calls" value={run.tool_call_count} />
           <Metric

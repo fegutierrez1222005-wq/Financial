@@ -1,0 +1,72 @@
+---
+description: Where code belongs in FINAGENT LAB, and the dependency direction that must not be violated. Read before adding a module, a service, or a database model.
+globs: apps/api/**/*.py,packages/core/**/*.py,services/**/*.py
+alwaysApply: false
+---
+
+# Architecture rules
+
+## Dependency direction
+
+```
+apps/api  ──depends on──>  services/*  ──depends on──>  packages/core
+```
+
+Nothing points back up. In particular:
+
+- **`packages/core` and `services/*` must never import SQLAlchemy, FastAPI or Celery.**
+  They are pure domain libraries. This is what lets the research engines be unit tested
+  with no database, no broker and no credentials — and that property is load-bearing,
+  because the seven critical security tests depend on it.
+- All persistence, tenancy and authorisation live in `apps/api`.
+- If an engine needs data, it takes an injected protocol (`DocumentRetriever`,
+  `PriceLoader`), and `apps/api` supplies the database-backed implementation.
+
+## Where things go
+
+| Concern | Location |
+| --- | --- |
+| Cutoff, numerics, errors, logging, demo dataset, provider abstractions | `packages/core` |
+| Agent loop, tools, sandbox, multi-agent debate | `services/agent-runner` |
+| Claims, verification, evaluators, scoring, golden dataset | `services/evaluation-engine` |
+| Simulator, metrics, splits, overfitting | `services/backtesting-engine` |
+| Parse, chunk, embed, index | `services/data-ingestion` |
+| ORM models, services, routers, jobs, auth, RBAC | `apps/api` |
+| UI | `apps/web` |
+
+## Layering inside `apps/api`
+
+```
+routers/   thin: resolve permission, call a service, shape the response
+services/  all business logic; the only place that writes to the database
+db/        models and session management
+jobs/      queue abstraction and registered jobs
+```
+
+A router must not contain business logic. A service must not know about HTTP.
+
+## Database
+
+- Every tenant-visible table uses `OrganizationScopedMixin` or `WorkspaceScopedMixin`.
+- Content tables use `SoftDeleteMixin`, and **every retrieval path filters
+  `deleted_at IS NULL`**.
+- Use the portable types in `db/types.py` — `GUID`, `JSONB`, `Vector`, `UTCDateTime` — so
+  the same models run on SQLite in tests and PostgreSQL + pgvector in production.
+- Always use `UTCDateTime`, never bare `DateTime(timezone=True)`: SQLite returns naive
+  datetimes and comparing them against aware ones raises.
+- Schema changes need an Alembic revision. Never edit a released migration.
+
+## Background work
+
+- Long operations go through `jobs/queue.py`, never inline in a request handler.
+- A job opens its **own** session. The caller commits before submitting and refreshes
+  afterwards. That is what makes the `inline` and `celery` backends interchangeable.
+- Create the resource row **before** queueing the work, so the client always has an id to
+  poll regardless of backend.
+
+## Errors
+
+- Raise a `FinagentError` subclass from `finagent_core.errors`. Never raise
+  `HTTPException` from a service.
+- Every error carries a code, a safe user message, whether a retry may help, and the
+  request id. Raw exceptions never reach a client.

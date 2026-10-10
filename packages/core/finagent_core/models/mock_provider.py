@@ -269,12 +269,25 @@ class MockModelProvider(ModelProvider):
     # ------------------------------------------------------------------- helpers
 
     def _findings(self, evidence: list[dict[str, Any]], question: str, *, cite: bool) -> list[str]:
+        """One finding per distinct statement.
+
+        Two documents frequently repeat the same sentence — a 10-Q and the earnings release
+        that accompanied it, for example. Listing it twice would inflate the apparent
+        weight of evidence behind it, so each statement is kept once.
+        """
         findings: list[str] = []
-        for item in evidence[:6]:
+        seen: set[str] = set()
+        for item in evidence[:8]:
             sentence = self._informative_sentence(str(item.get("text", "")), question)
             if not sentence:
                 continue
+            key = re.sub(r"[^a-z0-9]+", "", sentence.lower())
+            if key in seen:
+                continue
+            seen.add(key)
             findings.append(f"{sentence} {self._citation_marker(item)}" if cite else sentence)
+            if len(findings) >= 6:
+                break
         return findings
 
     def _coverage(self, required: list[str], evidence: list[dict[str, Any]]) -> list[str]:

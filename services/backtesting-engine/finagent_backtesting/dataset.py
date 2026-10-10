@@ -59,19 +59,23 @@ class PriceDataset:
             factor_publication_lag_days=dict(self.factor_publication_lag_days),
         )
 
-    def history_for(self, as_of: pd.Timestamp, lookback: int) -> pd.DataFrame:
+    def history_for(self, as_of: pd.Timestamp | date | str, lookback: int) -> pd.DataFrame:
         """Price history strictly *before* ``as_of`` — the look-ahead firewall.
 
         Every strategy signal derives from this method. Because it excludes ``as_of``
         itself, a signal can never be computed from the bar it trades on.
-        """
-        return self.prices.loc[self.prices.index < as_of].tail(lookback)
 
-    def factors_available_at(self, as_of: pd.Timestamp) -> pd.DataFrame:
+        ``as_of`` is normalised rather than assumed to be a ``Timestamp``: comparing a
+        ``datetime64`` index against a plain ``date`` raises in pandas, and a caller must
+        not be able to turn the firewall into an exception by passing the obvious type.
+        """
+        return self.prices.loc[self.prices.index < pd.Timestamp(as_of)].tail(lookback)
+
+    def factors_available_at(self, as_of: pd.Timestamp | date | str) -> pd.DataFrame:
         """Latest factor observation per symbol that was public strictly before ``as_of``."""
         if self.factors is None or self.factors.empty:
             return pd.DataFrame()
-        visible = self.factors[self.factors.index.get_level_values(0) < as_of]
+        visible = self.factors[self.factors.index.get_level_values(0) < pd.Timestamp(as_of)]
         if visible.empty:
             return pd.DataFrame()
         return visible.groupby(level="symbol").last()

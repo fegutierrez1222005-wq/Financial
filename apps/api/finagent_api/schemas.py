@@ -452,7 +452,7 @@ class RunResponse(ApiModel):
     information_cutoff: datetime | None
     used_mock_model: bool
     used_demo_data: bool
-    warnings: list[dict[str, Any]] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
     error_code: str | None
     error_message: str | None
     reproducibility_key: str | None
@@ -585,7 +585,7 @@ class EvaluationResponse(ApiModel):
     judge_model: str | None
     judge_is_mock: bool
     weights: dict[str, float] = Field(default_factory=dict)
-    warnings: list[dict[str, Any]] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
     summary: dict[str, Any] = Field(default_factory=dict)
     started_at: datetime | None
     finished_at: datetime | None
@@ -833,7 +833,7 @@ class DocumentResponse(ApiModel):
     malware_scan_status: str | None
     error_code: str | None
     error_message: str | None
-    warnings: list[dict[str, Any]] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
     created_at: datetime
     deleted_at: datetime | None = None
 

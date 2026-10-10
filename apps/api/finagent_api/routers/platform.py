@@ -235,8 +235,8 @@ def create_webhook(
         resource_id=hook.id,
         metadata={"events": payload.events},
     )
-    return WebhookCreatedResponse.model_validate(hook).model_copy(
-        update={"signing_secret": secret}
+    return WebhookCreatedResponse(
+        **WebhookResponse.model_validate(hook).model_dump(), signing_secret=secret
     )
 
 

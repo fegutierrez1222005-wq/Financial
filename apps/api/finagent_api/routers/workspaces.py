@@ -387,8 +387,9 @@ def create_api_key(
         resource_id=api_key.id,
         metadata={"name": payload.name, "role": payload.role.value},
     )
-    return ApiKeyCreatedResponse.model_validate(api_key).model_copy(
-        update={"plaintext_key": generated.plaintext}
+    return ApiKeyCreatedResponse(
+        **ApiKeyResponse.model_validate(api_key).model_dump(),
+        plaintext_key=generated.plaintext,
     )
 
 

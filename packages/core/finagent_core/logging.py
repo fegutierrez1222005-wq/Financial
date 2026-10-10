@@ -66,6 +66,39 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(base, default=str)
 
 
+class _SafeExtraLogger(logging.Logger):
+    """Logger that cannot be crashed by a structured field name.
+
+    ``Logger.makeRecord`` raises ``KeyError`` when ``extra`` contains a key that collides
+    with a ``LogRecord`` attribute — ``filename`` and ``module`` are the easy ones to hit
+    when logging about documents. A logging call must never be able to fail the operation
+    it is describing, so colliding keys are prefixed rather than rejected.
+    """
+
+    def makeRecord(  # noqa: PLR0913 - stdlib signature
+        self,
+        name,  # noqa: ANN001
+        level,  # noqa: ANN001
+        fn,  # noqa: ANN001
+        lno,  # noqa: ANN001
+        msg,  # noqa: ANN001
+        args,  # noqa: ANN001
+        exc_info,  # noqa: ANN001
+        func=None,  # noqa: ANN001
+        extra=None,  # noqa: ANN001
+        sinfo=None,  # noqa: ANN001
+    ) -> logging.LogRecord:
+        if extra:
+            extra = {
+                (f"extra_{key}" if key in _RESERVED else key): value
+                for key, value in extra.items()
+            }
+        return super().makeRecord(name, level, fn, lno, msg, args, exc_info, func, extra, sinfo)
+
+
+logging.setLoggerClass(_SafeExtraLogger)
+
+
 def configure_logging(level: str | None = None, *, json_output: bool | None = None) -> None:
     """Install the formatter on the root logger. Idempotent."""
     resolved_level = (level or os.getenv("LOG_LEVEL") or "INFO").upper()

@@ -29,7 +29,7 @@ os.environ.update(
         "RATE_LIMIT_ENABLED": "false",
         "STORAGE_DIR": str(_TMP / "storage"),
         "ENABLE_DEMO_PROVIDERS": "true",
-        "LOG_LEVEL": "WARNING",
+        "LOG_LEVEL": "INFO",
         "LOG_FORMAT": "text",
         "BCRYPT_ROUNDS": "4",
         # No provider credentials: every model and embedding call must resolve to the

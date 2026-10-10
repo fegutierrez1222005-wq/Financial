@@ -167,6 +167,35 @@ class TestDemoDataset:
             assert row["is_demo"] is True
 
 
+class TestLogging:
+    def test_a_log_field_cannot_crash_the_operation_it_describes(self, caplog) -> None:  # noqa: ANN001
+        """``filename`` and ``module`` collide with LogRecord attributes.
+
+        Before this guard, ingesting a document raised ``KeyError`` from inside the logging
+        call that was merely reporting success.
+        """
+        from finagent_core.logging import get_logger
+
+        logger = get_logger("tests.logging")
+        with caplog.at_level("INFO"):
+            logger.info("document_ingested", extra={"filename": "acme.pdf", "pages": 3})
+
+        record = caplog.records[-1]
+        assert record.extra_filename == "acme.pdf"
+        assert record.pages == 3
+        assert record.filename.endswith(".py"), "the real LogRecord attribute is preserved"
+
+    def test_sensitive_values_are_redacted(self) -> None:
+        from finagent_core.logging import redact
+
+        payload = redact(
+            {"api_key": "sk-live-secret", "nested": {"password": "hunter2"}, "model": "gpt-4o"}
+        )
+        assert payload["api_key"] == "[REDACTED]"
+        assert payload["nested"]["password"] == "[REDACTED]"
+        assert payload["model"] == "gpt-4o"
+
+
 class TestSandbox:
     """The sandbox must run real analysis code and refuse everything else."""
 

@@ -56,15 +56,19 @@ def readiness() -> ReadinessResponse:
     )
 
     overview = provider_overview()
-    model_ready = any(entry.get("available") for entry in overview.get("models", []))
+    available = overview.get("available_models", [])
+    vendor = [entry for entry in available if not entry.get("is_mock")]
     components.append(
         ReadinessComponent(
             name="model_provider",
-            ready=model_ready,
+            ready=bool(available),
             detail=(
-                "at least one model provider is reachable"
-                if model_ready
-                else "no model provider is configured"
+                f"{len(vendor)} vendor model(s) configured"
+                if vendor
+                else "only the deterministic local provider is available; output will be "
+                "labelled as simulated"
+                if available
+                else "no model provider is available"
             ),
         )
     )

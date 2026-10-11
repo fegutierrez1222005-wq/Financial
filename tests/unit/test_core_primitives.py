@@ -196,6 +196,75 @@ class TestLogging:
         assert payload["model"] == "gpt-4o"
 
 
+class TestMockProvider:
+    """The deterministic provider must be honest, not merely offline."""
+
+    @pytest.fixture
+    def provider(self):  # noqa: ANN201
+        from finagent_core.models.mock_provider import MockModelProvider
+
+        return MockModelProvider()
+
+    def test_a_question_is_never_quoted_as_an_assertion(self, provider) -> None:  # noqa: ANN001
+        text = (
+            "Analyst: Any update on the patent litigation that was disclosed last quarter? "
+            "Chief Financial Officer: The matter remains in discovery and we have not accrued "
+            "a loss."
+        )
+        sentences = provider._candidate_sentences(text)
+        assert sentences
+        assert not any(sentence.rstrip().endswith("?") for sentence in sentences)
+
+    def test_a_heading_is_not_quoted_as_a_claim(self, provider) -> None:  # noqa: ANN001
+        text = (
+            "Management's Discussion and Analysis of Financial Condition and Results of Operations\n"
+            "Revenue increased 18.0% to $4,820.0 million in fiscal 2023."
+        )
+        assert provider._informative_sentence(text, "revenue growth").startswith("Revenue increased")
+
+    def test_a_clause_is_tidied_rather_than_left_ending_in_a_stray_semicolon(
+        self, provider
+    ) -> None:  # noqa: ANN001
+        text = "A single distributor accounted for 11.2% of revenue in fiscal 2023; " \
+               "no other customer exceeded 10.0%."
+        for sentence in (provider._informative_sentence(text, "distributor concentration"),):
+            assert not sentence.endswith(";.")
+            assert sentence.endswith(".")
+
+    def test_coverage_reports_a_field_the_evidence_does_not_establish(self, provider) -> None:  # noqa: ANN001
+        """Saying "not established" must be true when it is said."""
+        evidence = [
+            {
+                "text": "Diluted earnings per share were $0.91, compared with $0.64 in Q4 2022.",
+                "document_name": "ACME Q4 2023 earnings release",
+                "page_number": 1,
+                "chunk_id": "chunk-1",
+            }
+        ]
+        lines = provider._coverage(["eps", "valuation"], evidence)
+        assert "$0.91" in lines[0], "a field the evidence does establish must be answered"
+        assert "not established by the retrieved evidence" in lines[1]
+
+    def test_output_is_composed_only_from_retrieved_text(self, provider) -> None:  # noqa: ANN001
+        """The provider must never invent a financial figure."""
+        from finagent_core.numeric import extract_numbers
+
+        evidence = [
+            {
+                "text": "Fiscal 2023 revenue was $4,820.0 million, an increase of 18.0%.",
+                "document_name": "ACME FY2023 10-K",
+                "page_number": 1,
+                "chunk_id": "chunk-1",
+            }
+        ]
+        findings = provider._findings(evidence, "revenue growth", cite=True)
+        assert findings
+        source_values = {mention.value for mention in extract_numbers(evidence[0]["text"])}
+        for finding in findings:
+            quoted = finding.split(" [Source:")[0]
+            assert {mention.value for mention in extract_numbers(quoted)} <= source_values
+
+
 class TestSandbox:
     """The sandbox must run real analysis code and refuse everything else."""
 

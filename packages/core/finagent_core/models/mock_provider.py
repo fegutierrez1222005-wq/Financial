@@ -47,6 +47,26 @@ _COMMON_TERMS = frozenset(
     }
 )
 
+#: How filings actually phrase a requested output field. Without these, a field the
+#: evidence *does* establish would be reported as not established, which is a false
+#: statement about the corpus rather than a harmless gap.
+_FIELD_ALIASES: dict[str, frozenset[str]] = {
+    "eps": frozenset({"earnings", "share", "diluted", "basic"}),
+    "revenue": frozenset({"revenue", "sales", "turnover"}),
+    "margin": frozenset({"margin", "gross", "operating", "profit"}),
+    "guidance": frozenset({"guidance", "outlook", "expects", "forecast"}),
+    "management_commentary": frozenset({"officer", "executive", "commentary", "said", "chief"}),
+    "management commentary": frozenset({"officer", "executive", "commentary", "said", "chief"}),
+    "risk": frozenset({"risk", "adverse", "litigation", "dependence", "concentration"}),
+    "changes_from_prior_quarter": frozenset({"compared", "versus", "prior", "sequential", "year"}),
+    "changes from prior quarter": frozenset({"compared", "versus", "prior", "sequential", "year"}),
+    "financial_health": frozenset({"liquidity", "leverage", "debt", "cash", "covenant"}),
+    "valuation": frozenset({"valuation", "multiple", "target", "discount", "premium"}),
+    "catalyst": frozenset({"catalyst", "upcoming", "scheduled", "expects"}),
+    "business_model": frozenset({"segment", "platform", "subscription", "hardware", "software"}),
+    "competitive": frozenset({"competition", "competitive", "share", "differentiat"}),
+}
+
 _POSITIVE_TOKENS = ("increase", "increased", "growth", "grew", "expanded", "record", "improv", "up ")
 _NEGATIVE_TOKENS = (
     "decrease", "declined", "decline", "risk", "loss", "headwind", "pressure", "litigation", "down ",
@@ -295,19 +315,21 @@ class MockModelProvider(ModelProvider):
 
         A field the retrieved evidence does not establish is reported as not established.
         Saying so is the correct answer; inventing a value to satisfy the contract is not.
+        For that honesty to hold, the search for a field has to be good enough that
+        "not established" means it — hence the aliases and the prefix-tolerant match.
         """
         lines: list[str] = []
         for field in required:
             label = field.replace("_", " ")
-            terms = {token for token in re.findall(r"[a-z]{4,}", label.lower())}
+            terms = self._field_terms(label)
             best: tuple[int, str, dict[str, Any]] | None = None
+            # Every sentence of every chunk is considered, not just each chunk's single
+            # most quotable one: "not established" has to mean the corpus does not say it.
             for item in evidence:
-                sentence = self._informative_sentence(str(item.get("text", "")), label)
-                if not sentence:
-                    continue
-                overlap = len(terms & set(re.findall(r"[a-z]{4,}", sentence.lower())))
-                if overlap and (best is None or overlap > best[0]):
-                    best = (overlap, sentence, item)
+                for sentence in self._candidate_sentences(str(item.get("text", ""))):
+                    overlap = self._term_overlap(terms, sentence)
+                    if overlap and (best is None or overlap > best[0]):
+                        best = (overlap, self._tidy(sentence), item)
             if best is None:
                 lines.append(
                     f"- **{label}**: not established by the retrieved evidence under this "
@@ -317,18 +339,65 @@ class MockModelProvider(ModelProvider):
                 lines.append(f"- **{label}**: {best[1]} {self._citation_marker(best[2])}")
         return lines
 
-    def _informative_sentence(self, text: str, question: str = "") -> str:
-        """Pick a quotable sentence: prose, reasonable length, ideally containing a figure.
+    def _field_terms(self, label: str) -> set[str]:
+        """Search terms for a requested output field, including how filings phrase it."""
+        terms = {token for token in re.findall(r"[a-z]{3,}", label.lower())}
+        for alias_key, aliases in _FIELD_ALIASES.items():
+            if alias_key in label.lower():
+                terms |= aliases
+        return terms - _COMMON_TERMS
+
+    @staticmethod
+    def _term_overlap(terms: set[str], sentence: str) -> int:
+        """Count matching terms, tolerating ordinary inflection (risk / risks / risked)."""
+        tokens = set(re.findall(r"[a-z]{3,}", sentence.lower()))
+        matched = 0
+        for term in terms:
+            stem = term[:5]
+            if any(token.startswith(stem) or term.startswith(token[:5]) for token in tokens):
+                matched += 1
+        return matched
+
+    @staticmethod
+    def _candidate_sentences(text: str) -> list[str]:
+        """Quotable sentences from a chunk: prose of reasonable length.
 
         Headings, disclaimers and dumped tables are skipped — citing them would produce a
-        reference a human reviewer could not check against a readable claim.
+        reference a human reviewer could not check against a readable claim. A heading is
+        recognised by the absence of terminating punctuation, which is also why a sentence
+        truncated by chunking is passed over rather than quoted mid-thought.
         """
-        raw = [part.strip() for part in _SENTENCE_SPLIT.split((text or "").strip()) if part.strip()]
+        # Split on line breaks before sentence boundaries. A heading does not end in a
+        # full stop, so without this it would be swallowed into the paragraph beneath it
+        # and quoted as part of the claim.
+        raw: list[str] = []
+        for line in (text or "").splitlines():
+            raw.extend(part.strip() for part in _SENTENCE_SPLIT.split(line.strip()) if part.strip())
+
         candidates = [
-            sentence.replace("\n", " ")
+            sentence
             for sentence in raw
-            if 40 <= len(sentence) <= 400 and "DEMO DATA" not in sentence and "|" not in sentence
+            if 40 <= len(sentence) <= 400
+            and "DEMO DATA" not in sentence
+            and "|" not in sentence
+            # A question asked on an earnings call is not an assertion about the world and
+            # must never be quoted as one.
+            and not sentence.rstrip().endswith("?")
         ]
+        complete = [
+            sentence for sentence in candidates if sentence.rstrip().endswith((".", "!", ";"))
+        ]
+        return complete or candidates
+
+    @staticmethod
+    def _tidy(sentence: str) -> str:
+        """A clause lifted out of a semicolon-separated list should read as a sentence."""
+        cleaned = sentence.rstrip().rstrip(";,")
+        return cleaned if cleaned.endswith((".", "!", "?")) else cleaned + "."
+
+    def _informative_sentence(self, text: str, question: str = "") -> str:
+        """The single most quotable sentence in a chunk, relative to the question."""
+        candidates = self._candidate_sentences(text)
         if not candidates:
             return ""
         question_terms = {
@@ -344,7 +413,7 @@ class MockModelProvider(ModelProvider):
             if question_terms
             else next((sentence for sentence in candidates if extract_numbers(sentence)), candidates[0])
         )
-        return best if best.endswith(".") else best + "."
+        return self._tidy(best)
 
     def _risks(self, evidence: list[dict[str, Any]]) -> list[str]:
         risks = []

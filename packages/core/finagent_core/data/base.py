@@ -7,7 +7,6 @@ prompt.
 
 from __future__ import annotations
 
-import abc
 from datetime import date
 from typing import Any
 
@@ -27,7 +26,15 @@ from finagent_core.errors import ProviderUnavailableError
 from finagent_core.models.base import ProviderStatus
 
 
-class FinancialDataProvider(abc.ABC):
+class FinancialDataProvider:
+    """Base for data providers.
+
+    Not an abstract interface: every capability is optional, and a provider declares
+    which ones it supports through ``capabilities`` rather than by implementing a fixed
+    set of methods. ``_require`` is what turns an unsupported capability into an honest
+    error instead of an empty result.
+    """
+
     key: str = "abstract"
     display_name: str = "Abstract data provider"
     capabilities: tuple[ProviderCapability, ...] = ()

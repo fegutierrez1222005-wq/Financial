@@ -7,7 +7,7 @@ without any external service.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -48,7 +48,8 @@ def test_full_research_loop(
     assert detail["plan"], "a run must produce a readable plan"
     assert detail["trace"], "every action must be recorded"
     assert detail["evidence"], "every claim's source must be retrievable"
-    assert detail["model_runs"] and all(entry["is_mock"] for entry in detail["model_runs"])
+    assert detail["model_runs"], "every model call must be recorded"
+    assert all(entry["is_mock"] for entry in detail["model_runs"])
     tool_names = {call["tool_name"] for call in detail["tool_calls"]}
     assert "DOCUMENT_SEARCH" in tool_names
 
@@ -126,7 +127,7 @@ def test_reproducing_a_run_produces_the_same_answer(
 def test_a_historical_run_is_labelled_and_constrained(
     client: TestClient, account: Account, demo_agent_id: str
 ) -> None:
-    cutoff = datetime(2023, 6, 30, tzinfo=timezone.utc)
+    cutoff = datetime(2023, 6, 30, tzinfo=UTC)
     run = create_run(
         client,
         account,

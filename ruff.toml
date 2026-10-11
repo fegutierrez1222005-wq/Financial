@@ -1,0 +1,59 @@
+# Lint contract for the Python side of FINAGENT LAB.
+#
+# Pinned explicitly rather than relying on ruff's defaults, so the rules a contributor
+# sees locally are the rules CI enforces, and a new ruff release cannot silently change
+# what "passing" means.
+
+target-version = "py312"
+line-length = 108
+extend-exclude = [".venv", "**/alembic/versions", "**/node_modules"]
+
+[lint]
+select = [
+    "F",      # pyflakes: real errors — undefined names, unused imports
+    "E4", "E7", "E9",  # pycodestyle errors that matter
+    "I",      # import ordering
+    "UP",     # pyupgrade: keep to modern syntax
+    "B",      # bugbear: likely bugs
+    "A",      # builtin shadowing
+    "C4",     # comprehension clarity
+    "DTZ",    # naive datetimes — the cutoff controls depend on aware ones
+    "G",      # logging format. G101 catches the `extra` key collision that once
+              # crashed document ingestion; it must stay on.
+    "ISC",    # implicit string concatenation
+    "LOG",    # logging misuse
+    "PIE",
+    "PT",     # pytest style
+    "RET504", # pointless assignment before return
+    "RSE",
+    "SIM",    # simplifiable code
+    "T20",    # no stray print() in library or service code
+    "TID252", # no relative imports across packages
+    "RUF",
+]
+ignore = [
+    "B008",    # FastAPI's Depends() in defaults is the framework's idiom
+    "RUF012",  # ClassVar annotations on tool schemas add noise without safety here
+    "SIM108",  # a ternary is not always clearer than an if/else
+    # Typographic characters (em dash, curly quotes) are used deliberately in prose.
+    "RUF001", "RUF002", "RUF003",
+]
+
+[lint.per-file-ignores]
+# Tests assert on internals and print diagnostics; CLI output is the point of the CLI.
+"tests/**" = ["T20", "SIM117", "PT011"]
+"apps/api/finagent_api/cli.py" = ["T20"]
+"apps/api/finagent_api/demo_flow.py" = ["T20"]
+
+[lint.isort]
+known-first-party = [
+    "finagent_core",
+    "finagent_agent_runner",
+    "finagent_evaluation",
+    "finagent_backtesting",
+    "finagent_ingestion",
+    "finagent_api",
+]
+
+[format]
+quote-style = "double"

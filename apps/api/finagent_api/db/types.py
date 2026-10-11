@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import timezone
+from datetime import UTC
 from typing import Any
 
 from sqlalchemy import JSON, DateTime, String, TypeDecorator
@@ -23,10 +23,10 @@ class GUID(TypeDecorator):
     impl = String(36)
     cache_ok = True
 
-    def process_bind_param(self, value: Any, dialect: Any) -> str | None:  # noqa: ARG002
+    def process_bind_param(self, value: Any, dialect: Any) -> str | None:
         return None if value is None else str(value)
 
-    def process_result_value(self, value: Any, dialect: Any) -> str | None:  # noqa: ARG002
+    def process_result_value(self, value: Any, dialect: Any) -> str | None:
         return None if value is None else str(value)
 
 
@@ -65,10 +65,10 @@ class Vector(TypeDecorator):
             return dialect.type_descriptor(PgVector(self.dimensions))
         return dialect.type_descriptor(JSON())
 
-    def process_bind_param(self, value: Any, dialect: Any) -> Any:  # noqa: ARG002
+    def process_bind_param(self, value: Any, dialect: Any) -> Any:
         return None if value is None else [float(item) for item in value]
 
-    def process_result_value(self, value: Any, dialect: Any) -> Any:  # noqa: ARG002
+    def process_result_value(self, value: Any, dialect: Any) -> Any:
         if value is None:
             return None
         if isinstance(value, str):
@@ -91,16 +91,16 @@ class UTCDateTime(TypeDecorator):
     impl = DateTime(timezone=True)
     cache_ok = True
 
-    def process_bind_param(self, value: Any, dialect: Any) -> Any:  # noqa: ARG002
+    def process_bind_param(self, value: Any, dialect: Any) -> Any:
         if value is None:
             return None
         if getattr(value, "tzinfo", None) is None:
-            return value.replace(tzinfo=timezone.utc)
-        return value.astimezone(timezone.utc)
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
 
-    def process_result_value(self, value: Any, dialect: Any) -> Any:  # noqa: ARG002
+    def process_result_value(self, value: Any, dialect: Any) -> Any:
         if value is None:
             return None
         if getattr(value, "tzinfo", None) is None:
-            return value.replace(tzinfo=timezone.utc)
-        return value.astimezone(timezone.utc)
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)

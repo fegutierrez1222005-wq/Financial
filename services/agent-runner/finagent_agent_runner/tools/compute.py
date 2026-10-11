@@ -11,11 +11,10 @@ import math
 import statistics
 from typing import Any
 
-from finagent_core.errors import ToolFailedError, ValidationFailedError
-from finagent_core.numeric import Unit, cagr, percent_change, safe_div
-
 from finagent_agent_runner.context import ToolContext
 from finagent_agent_runner.tools.base import Tool, ToolPermission, ToolResult
+from finagent_core.errors import ToolFailedError, ValidationFailedError
+from finagent_core.numeric import Unit, cagr, percent_change, safe_div
 
 _ALLOWED_FUNCTIONS: dict[str, Any] = {
     "abs": abs,
@@ -149,7 +148,7 @@ class CalculatorTool(Tool):
         },
     }
 
-    def run(self, arguments: dict[str, Any], context: ToolContext) -> ToolResult:  # noqa: ARG002
+    def run(self, arguments: dict[str, Any], context: ToolContext) -> ToolResult:
         operation = str(arguments.get("operation") or "expression")
         try:
             value, unit, formula = self._compute(operation, arguments)

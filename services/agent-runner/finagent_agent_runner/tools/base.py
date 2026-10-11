@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
+from finagent_agent_runner.context import ToolContext
 from finagent_core.errors import (
     FinagentError,
     ToolFailedError,
@@ -21,8 +22,6 @@ from finagent_core.errors import (
 )
 from finagent_core.logging import get_logger
 from finagent_core.models.base import ToolSpec
-
-from finagent_agent_runner.context import ToolContext
 
 logger = get_logger(__name__)
 

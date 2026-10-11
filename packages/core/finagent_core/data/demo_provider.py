@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 from finagent_core.cutoff import AsOfContext
 from finagent_core.data.base import FinancialDataProvider
@@ -76,7 +76,7 @@ class DemoDataProvider(FinancialDataProvider):
             employees=profile.get("employees"),
             source=DEMO_SOURCE,
             is_demo=True,
-            publication_timestamp=datetime(2018, 1, 1, tzinfo=timezone.utc),
+            publication_timestamp=datetime(2018, 1, 1, tzinfo=UTC),
         )
 
     # --------------------------------------------------------------- statements
@@ -247,7 +247,7 @@ class DemoDataProvider(FinancialDataProvider):
                         source=DEMO_SOURCE,
                         is_demo=True,
                         publication_timestamp=datetime(
-                            ex_date.year, ex_date.month, ex_date.day, tzinfo=timezone.utc
+                            ex_date.year, ex_date.month, ex_date.day, tzinfo=UTC
                         ),
                     )
                 )

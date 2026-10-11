@@ -7,7 +7,7 @@ cost per token tells an institution nothing about value.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func, select
@@ -59,7 +59,7 @@ def record_usage(
 
 
 def period_bounds(days: int = 30) -> tuple[datetime, datetime]:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return now - timedelta(days=days), now
 
 

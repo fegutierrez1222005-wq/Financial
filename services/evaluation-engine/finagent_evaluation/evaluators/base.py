@@ -20,7 +20,6 @@ from typing import Any
 from finagent_core.models.base import ModelProvider
 from finagent_core.schemas.enums import EvaluationDimension
 from finagent_core.schemas.research import RunResult
-
 from finagent_evaluation.cases import EvaluationCase
 from finagent_evaluation.claims import ExtractedClaim
 from finagent_evaluation.verification import VerificationReport

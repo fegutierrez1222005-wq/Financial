@@ -8,7 +8,7 @@ prompt v3 actually improve the agent?" an answerable question rather than an opi
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -135,7 +135,7 @@ def execute_experiment(db: DbSession, *, experiment_id: str, user_id: str | None
         raise NotFoundError("experiment not found")
 
     experiment.status = RunStatus.RUNNING.value
-    experiment.started_at = datetime.now(timezone.utc)
+    experiment.started_at = datetime.now(UTC)
     db.flush()
 
     max_cases = (experiment.configuration or {}).get("max_cases")
@@ -155,7 +155,7 @@ def execute_experiment(db: DbSession, *, experiment_id: str, user_id: str | None
                 experiment_run_id=arm.id,
                 max_cases=max_cases,
             )
-        except Exception as exc:  # noqa: BLE001 - a failed arm is a result
+        except Exception as exc:
             arm.status = RunStatus.FAILED.value
             arm.error_code = type(exc).__name__
             arm.error_message = str(exc)[:500]
@@ -181,7 +181,7 @@ def execute_experiment(db: DbSession, *, experiment_id: str, user_id: str | None
         db.flush()
 
     experiment.status = RunStatus.SUCCEEDED.value
-    experiment.finished_at = datetime.now(timezone.utc)
+    experiment.finished_at = datetime.now(UTC)
     experiment.results_summary = _summarise_arms(db, experiment)
     experiment.conclusion = experiment.results_summary.get("conclusion")
     db.flush()
@@ -328,7 +328,7 @@ def execute_benchmark(db: DbSession, *, benchmark_id: str, user_id: str | None =
         raise NotFoundError("benchmark not found")
 
     benchmark.status = RunStatus.RUNNING.value
-    benchmark.started_at = datetime.now(timezone.utc)
+    benchmark.started_at = datetime.now(UTC)
     db.flush()
 
     entries: list[BenchmarkEntry] = []
@@ -347,7 +347,7 @@ def execute_benchmark(db: DbSession, *, benchmark_id: str, user_id: str | None =
                 agent_version_id=version.id,
                 user_id=user_id,
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.warning(
                 "benchmark_entry_failed",
                 extra={"benchmark_id": benchmark.id, "agent_version_id": version_id},
@@ -393,7 +393,7 @@ def execute_benchmark(db: DbSession, *, benchmark_id: str, user_id: str | None =
     for rank, entry in enumerate(ranked, start=1):
         entry.rank = rank
     benchmark.status = RunStatus.SUCCEEDED.value
-    benchmark.finished_at = datetime.now(timezone.utc)
+    benchmark.finished_at = datetime.now(UTC)
     benchmark.summary = {
         "suite_key": benchmark.suite_key,
         "entries": len(entries),

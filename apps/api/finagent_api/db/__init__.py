@@ -14,19 +14,19 @@ from finagent_api.db.session import (
 from finagent_api.db.types import GUID, JSONB, UTCDateTime, Vector, new_uuid
 
 __all__ = [
+    "GUID",
+    "JSONB",
     "Base",
-    "utcnow",
+    "UTCDateTime",
+    "Vector",
     "create_all",
     "ensure_extensions",
     "get_db",
     "get_engine",
     "get_session_factory",
     "is_postgres",
+    "new_uuid",
     "reset_engine",
     "session_scope",
-    "GUID",
-    "JSONB",
-    "UTCDateTime",
-    "Vector",
-    "new_uuid",
+    "utcnow",
 ]

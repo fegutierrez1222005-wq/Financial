@@ -8,7 +8,7 @@ platform-defined heuristics, documented in ``docs/DATA_PROVIDERS.md``.
 from __future__ import annotations
 
 from collections import Counter
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 from finagent_core.data.schemas import DataQualityReport
@@ -37,7 +37,7 @@ def assess_rows(
     now: datetime | None = None,
 ) -> DataQualityReport:
     """Score a tabular dataset 0–100 and list explicit warnings."""
-    now = now or datetime.now(timezone.utc)
+    now = now or datetime.now(UTC)
     warnings: list[str] = []
     if not rows:
         return DataQualityReport(row_count=0, quality_score=0.0, warnings=["Dataset contains no rows."])

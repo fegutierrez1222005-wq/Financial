@@ -7,17 +7,16 @@ cannot obtain a "cleaner" result than a human would by calling a different code 
 from __future__ import annotations
 
 import statistics
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import Any
 
+from finagent_agent_runner.context import ToolContext
+from finagent_agent_runner.tools.base import Tool, ToolPermission, ToolResult
+from finagent_agent_runner.tools.market import parse_date, today_utc
 from finagent_backtesting.engine import run_backtest
 from finagent_backtesting.spec import BacktestSpec, StrategySpec
 from finagent_backtesting.splits import default_split_config, run_with_splits
 from finagent_core.errors import ToolFailedError, ValidationFailedError
-
-from finagent_agent_runner.context import ToolContext
-from finagent_agent_runner.tools.base import Tool, ToolPermission, ToolResult
-from finagent_agent_runner.tools.market import parse_date
 
 
 class BacktestTool(Tool):
@@ -67,7 +66,7 @@ class BacktestTool(Tool):
         if not universe:
             raise ValidationFailedError("universe must contain at least one symbol")
 
-        cutoff_date = context.as_of.cutoff.date() if context.as_of.cutoff else date.today()
+        cutoff_date = context.as_of.cutoff.date() if context.as_of.cutoff else today_utc()
         end = min(parse_date(arguments.get("end_date"), cutoff_date), cutoff_date)
         start = parse_date(arguments.get("start_date"), end - timedelta(days=365 * 3))
         if end <= start:
@@ -169,7 +168,7 @@ class PortfolioAnalysisTool(Tool):
         if total_weight <= 0:
             raise ValidationFailedError("position weights must sum to a positive number")
 
-        cutoff_date = context.as_of.cutoff.date() if context.as_of.cutoff else date.today()
+        cutoff_date = context.as_of.cutoff.date() if context.as_of.cutoff else today_utc()
         end = min(parse_date(arguments.get("end_date"), cutoff_date), cutoff_date)
         start = parse_date(arguments.get("start_date"), end - timedelta(days=365))
         dataset = context.price_loader.load(list(positions), start=start, end=end, as_of=context.as_of)

@@ -12,11 +12,11 @@ from finagent_core.embeddings.registry import EmbeddingRegistry, build_default_e
 
 __all__ = [
     "EMBEDDING_DIM",
-    "EmbeddingProvider",
-    "EmbeddingResult",
-    "cosine_similarity",
     "DeterministicEmbeddingProvider",
-    "OpenAIEmbeddingProvider",
+    "EmbeddingProvider",
     "EmbeddingRegistry",
+    "EmbeddingResult",
+    "OpenAIEmbeddingProvider",
     "build_default_embedding_registry",
+    "cosine_similarity",
 ]

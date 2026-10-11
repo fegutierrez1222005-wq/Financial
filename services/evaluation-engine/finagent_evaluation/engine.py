@@ -9,7 +9,7 @@ worker and the test suite.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from finagent_core.errors import EvaluationFailedError
@@ -17,7 +17,6 @@ from finagent_core.logging import get_logger, log_context
 from finagent_core.models.base import ModelProvider
 from finagent_core.schemas.enums import RunStatus
 from finagent_core.schemas.research import RunResult
-
 from finagent_evaluation.cases import EvaluationCase, EvaluationSuite
 from finagent_evaluation.claims import ExtractedClaim, claim_statistics, extract_claims
 from finagent_evaluation.evaluators import default_evaluators
@@ -28,7 +27,7 @@ from finagent_evaluation.evaluators.base import (
     EvaluatorOutcome,
     Failure,
 )
-from finagent_evaluation.scoring import ScoreResult, Scorer, collect_failures, collect_warnings
+from finagent_evaluation.scoring import Scorer, ScoreResult, collect_failures, collect_warnings
 from finagent_evaluation.verification import ClaimVerdict, VerificationReport, verify_claims
 
 logger = get_logger(__name__)
@@ -47,7 +46,7 @@ class EvaluationReport:
     suite_key: str | None = None
     evaluators_run: list[str] = field(default_factory=list)
     judge_detail: dict[str, Any] = field(default_factory=dict)
-    evaluated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    evaluated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     detail: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -150,8 +149,10 @@ class EvaluationEngine:
                     outcomes.append(
                         EvaluatorOutcome(
                             warnings=[
-                                f"Evaluator '{evaluator.key}' failed and was skipped "
-                                f"({type(exc).__name__})."
+                                (
+                                    f"Evaluator '{evaluator.key}' failed and was skipped "
+                                    f"({type(exc).__name__})."
+                                )
                             ]
                         )
                     )

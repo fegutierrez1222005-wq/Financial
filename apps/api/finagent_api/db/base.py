@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import ForeignKey, String, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
@@ -11,7 +11,7 @@ from finagent_api.db.types import GUID, UTCDateTime, new_uuid
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Base(DeclarativeBase):
@@ -49,7 +49,7 @@ class OrganizationScopedMixin:
     """Every tenant-visible row carries its organization."""
 
     @declared_attr
-    def organization_id(cls) -> Mapped[str]:  # noqa: N805
+    def organization_id(cls) -> Mapped[str]:
         return mapped_column(
             GUID(), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
         )
@@ -57,7 +57,7 @@ class OrganizationScopedMixin:
 
 class WorkspaceScopedMixin(OrganizationScopedMixin):
     @declared_attr
-    def workspace_id(cls) -> Mapped[str]:  # noqa: N805
+    def workspace_id(cls) -> Mapped[str]:
         return mapped_column(
             GUID(), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False, index=True
         )

@@ -5,23 +5,23 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from finagent_core.schemas.enums import (
+    ClaimSupport,
     OutputFormat,
     ResearchStepKind,
     RunStatus,
     TaskTemplate,
 )
 from finagent_core.schemas.thesis import InvestmentThesis
-from finagent_core.schemas.enums import ClaimSupport
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class TaskSpec(BaseModel):

@@ -9,14 +9,22 @@ Everything created here is marked ``is_demo=True`` and surfaces a ``DEMO`` badge
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DbSession
 
-from finagent_api.db.models import Agent, Backtest, DataSource, Document, DocumentChunk
-from finagent_api.db.models import Organization, User, Workspace
+from finagent_api.db.models import (
+    Agent,
+    Backtest,
+    DataSource,
+    Document,
+    DocumentChunk,
+    Organization,
+    User,
+    Workspace,
+)
 from finagent_api.services import agent_service, evaluation_service, workspace_service
 from finagent_api.services.agent_service import AgentDraft
 from finagent_api.services.audit import AuditAction, record_audit
@@ -184,7 +192,7 @@ def _seed_data_sources(
             is_demo=descriptor["is_demo"],
             capabilities=descriptor["capabilities"],
             config={"requires_credentials": descriptor["requires_credentials"]},
-            last_checked_at=datetime.now(timezone.utc),
+            last_checked_at=datetime.now(UTC),
         )
         db.add(source)
         db.flush()

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
@@ -37,7 +37,7 @@ from finagent_core.schemas.enums import WorkspaceRole
 router = APIRouter(tags=["workspaces"])
 
 
-def _require_user(principal):  # noqa: ANN001, ANN201
+def _require_user(principal):
     if principal.user is None:
         raise ForbiddenError("this endpoint requires a user session, not an API key")
     return principal.user
@@ -184,7 +184,7 @@ def delete_workspace(
     context: Annotated[WorkspaceContext, Depends(require_permission(Permission.WORKSPACE_DELETE))],
 ) -> Message:
     workspace: Workspace = context.workspace
-    workspace.deleted_at = datetime.now(timezone.utc)
+    workspace.deleted_at = datetime.now(UTC)
     record_audit(
         db,
         action=AuditAction.WORKSPACE_DELETED,
@@ -370,7 +370,7 @@ def create_api_key(
             if permission not in API_KEY_FORBIDDEN
         ),
         expires_at=(
-            datetime.now(timezone.utc) + timedelta(days=payload.expires_in_days)
+            datetime.now(UTC) + timedelta(days=payload.expires_in_days)
             if payload.expires_in_days
             else None
         ),
@@ -404,7 +404,7 @@ def revoke_api_key(
     api_key = db.get(ApiKey, api_key_id)
     if api_key is None or api_key.organization_id != context.organization_id:
         raise NotFoundError("api key not found")
-    api_key.revoked_at = datetime.now(timezone.utc)
+    api_key.revoked_at = datetime.now(UTC)
     record_audit(
         db,
         action=AuditAction.API_KEY_REVOKED,

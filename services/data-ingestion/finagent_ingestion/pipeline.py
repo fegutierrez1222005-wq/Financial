@@ -105,7 +105,7 @@ def ingest_document(
     logger.info(
         "document_ingested",
         extra={
-            "filename": upload.filename,
+            "document_filename": upload.filename,
             "pages": document.page_count,
             "chunks": len(chunks),
             "embedding_model": embedding_provider.model,

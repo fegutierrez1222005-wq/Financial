@@ -26,7 +26,7 @@ def _create_engine(url: str) -> Engine:
         )
 
         @event.listens_for(engine, "connect")
-        def _sqlite_pragmas(dbapi_connection, connection_record):  # noqa: ANN001, ARG001
+        def _sqlite_pragmas(dbapi_connection, connection_record):
             cursor = dbapi_connection.cursor()
             cursor.execute("PRAGMA foreign_keys=ON")
             cursor.close()
@@ -103,13 +103,13 @@ def ensure_extensions(engine: Engine | None = None) -> None:
     with engine.begin() as connection:
         try:
             connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-        except Exception as exc:  # noqa: BLE001 - insufficient privilege is recoverable
+        except Exception as exc:
             logger.warning("pgvector_extension_unavailable", extra={"detail": str(exc)[:200]})
 
 
 def create_all() -> None:
     """Create tables directly (tests and first-run bootstrap; Alembic owns production)."""
-    from finagent_api.db import models  # noqa: F401 - registers metadata
+    from finagent_api.db import models
 
     engine = get_engine()
     ensure_extensions(engine)

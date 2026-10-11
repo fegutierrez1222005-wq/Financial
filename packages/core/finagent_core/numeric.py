@@ -131,11 +131,8 @@ def values_match(
 
 
 def in_range(value: float, low: float | None, high: float | None) -> bool:
-    if low is not None and value < low:
-        return False
-    if high is not None and value > high:
-        return False
-    return True
+    """Inclusive on both ends; an absent bound does not constrain."""
+    return (low is None or value >= low) and (high is None or value <= high)
 
 
 def comparable(a: NumericMention, b: NumericMention) -> bool:
@@ -187,5 +184,5 @@ def format_value(value: float, unit: Unit | str) -> str:
             return f"${value / 1e3:,.1f}K"
         return f"${value:,.2f}"
     if abs(value - round(value)) < 1e-9:
-        return f"{int(round(value)):,}"
+        return f"{round(value):,}"
     return f"{value:,.2f}"

@@ -40,7 +40,7 @@ def readiness() -> ReadinessResponse:
         with get_engine().connect() as connection:
             connection.execute(text("SELECT 1"))
         components.append(ReadinessComponent(name="database", ready=True))
-    except Exception as exc:  # noqa: BLE001 - the probe must report, not raise
+    except Exception as exc:
         components.append(
             ReadinessComponent(name="database", ready=False, detail=str(exc)[:200])
         )

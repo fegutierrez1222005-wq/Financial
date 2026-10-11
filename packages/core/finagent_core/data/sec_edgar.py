@@ -8,7 +8,7 @@ contact string is treated as this provider's credential: without it the provider
 from __future__ import annotations
 
 import re
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 import httpx
@@ -121,7 +121,7 @@ class SecEdgarProvider(FinancialDataProvider):
             cik=cik,
             exchange=(payload.get("exchanges") or [None])[0],
             source=self.key,
-            publication_timestamp=datetime.now(timezone.utc),
+            publication_timestamp=datetime.now(UTC),
         )
 
     def _statements_from_facts(
@@ -155,7 +155,7 @@ class SecEdgarProvider(FinancialDataProvider):
                     )
                     filed = entry.get("filed")
                     published = (
-                        datetime.fromisoformat(filed).replace(tzinfo=timezone.utc) if filed else None
+                        datetime.fromisoformat(filed).replace(tzinfo=UTC) if filed else None
                     )
                     bucket = buckets.setdefault(
                         label,
@@ -255,7 +255,7 @@ class SecEdgarProvider(FinancialDataProvider):
             filed_raw = (recent.get("filingDate") or [None])[index]
             if not filed_raw:
                 continue
-            filed_at = datetime.fromisoformat(filed_raw).replace(tzinfo=timezone.utc)
+            filed_at = datetime.fromisoformat(filed_raw).replace(tzinfo=UTC)
             accession = (recent.get("accessionNumber") or [None])[index]
             document = (recent.get("primaryDocument") or [None])[index]
             period = (recent.get("reportDate") or [None])[index]

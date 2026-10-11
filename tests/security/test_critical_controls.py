@@ -16,7 +16,7 @@ control is actually wired into the path a request takes.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -108,7 +108,7 @@ def test_agent_cannot_retrieve_information_after_the_cutoff(
     """
     from finagent_api.db.models import Document, RunEvidence
 
-    cutoff = datetime(2023, 6, 30, tzinfo=timezone.utc)
+    cutoff = datetime(2023, 6, 30, tzinfo=UTC)
     run = create_run(
         client,
         account,
@@ -168,9 +168,9 @@ def test_cutoff_rejects_unknown_publication_dates() -> None:
     """Unit-level statement of the rule the integration tests rely on."""
     from finagent_core.cutoff import AsOfContext
 
-    context = AsOfContext(cutoff=datetime(2023, 6, 30, tzinfo=timezone.utc))
-    assert context.allows(datetime(2023, 1, 1, tzinfo=timezone.utc))
-    assert not context.allows(datetime(2024, 2, 14, tzinfo=timezone.utc))
+    context = AsOfContext(cutoff=datetime(2023, 6, 30, tzinfo=UTC))
+    assert context.allows(datetime(2023, 1, 1, tzinfo=UTC))
+    assert not context.allows(datetime(2024, 2, 14, tzinfo=UTC))
     assert not context.allows(None), "unknown provenance is inadmissible, not assumed valid"
     assert AsOfContext(cutoff=None).allows(None), "without a cutoff nothing is restricted"
 
@@ -250,11 +250,10 @@ def test_incorrect_calculation_is_flagged() -> None:
     Driven directly against the evaluation engine so the assertion is about the checker,
     not about whether a particular model happens to miscalculate today.
     """
+    from finagent_core.schemas.research import RunResult
     from finagent_evaluation.cases import EvaluationCase
     from finagent_evaluation.evaluators import EvaluationContext, ExpectedValueEvaluator
     from finagent_evaluation.verification import VerificationReport
-
-    from finagent_core.schemas.research import RunResult
 
     case = EvaluationCase(
         key="UNIT_GROSS_MARGIN",
@@ -267,7 +266,7 @@ def test_incorrect_calculation_is_flagged() -> None:
     )
     evaluator = ExpectedValueEvaluator()
 
-    def score(answer: str):  # noqa: ANN202
+    def score(answer: str):
         return evaluator.evaluate(
             EvaluationContext(
                 run=RunResult(output_text=answer),
@@ -468,7 +467,8 @@ def test_deleted_document_cannot_be_retrieved(
     )
     # ...while the row is retained with deleted_at set, so audit history survives.
     row = db.get(Document, target["id"])
-    assert row is not None and row.deleted_at is not None
+    assert row is not None, "the row must be retained, not hard-deleted"
+    assert row.deleted_at is not None
 
 
 # ---------------------------------------------------------------------------- 7

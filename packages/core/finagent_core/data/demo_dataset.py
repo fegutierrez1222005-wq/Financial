@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import numpy as np
@@ -34,7 +34,7 @@ MILLION = 1_000_000.0
 
 
 def _utc(year: int, month: int, day: int, hour: int = 21) -> datetime:
-    return datetime(year, month, day, hour, 0, tzinfo=timezone.utc)
+    return datetime(year, month, day, hour, 0, tzinfo=UTC)
 
 
 # --------------------------------------------------------------------------- profiles
@@ -655,7 +655,7 @@ def generate_price_series(symbol: str, start: date, end: date) -> list[dict[str,
                 "adj_close": round(close, 4),
                 "volume": float(int(rng.integers(200_000, 3_000_000))),
                 # A daily bar is public after that session closes.
-                "publication_timestamp": datetime(day.year, day.month, day.day, 21, 0, tzinfo=timezone.utc),
+                "publication_timestamp": datetime(day.year, day.month, day.day, 21, 0, tzinfo=UTC),
             }
         )
     return bars
@@ -685,7 +685,7 @@ def demo_fundamental_factors() -> list[dict[str, Any]]:
                     "symbol": symbol,
                     "period_end": period_end,
                     "publication_timestamp": datetime(
-                        period_end.year, period_end.month, period_end.day, 21, 0, tzinfo=timezone.utc
+                        period_end.year, period_end.month, period_end.day, 21, 0, tzinfo=UTC
                     )
                     + timedelta(days=45),
                     "earnings_yield": round(max(0.005, base_quality * 0.35 + drift), 4),

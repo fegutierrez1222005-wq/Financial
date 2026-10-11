@@ -11,7 +11,6 @@ from typing import Any
 
 from finagent_core.numeric import cagr, extract_numbers, percent_change, safe_div, values_match
 from finagent_core.schemas.enums import EvaluationDimension
-
 from finagent_evaluation.evaluators.base import (
     EvaluationContext,
     Evaluator,

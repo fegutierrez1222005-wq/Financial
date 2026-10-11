@@ -16,6 +16,7 @@ import math
 import re
 import time
 from collections import Counter
+from itertools import pairwise
 
 import numpy as np
 
@@ -25,8 +26,7 @@ _TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9\.\-%$]*")
 
 #: Extremely common words carry no retrieval signal in financial text.
 _STOPWORDS = frozenset(
-    """a an and are as at be by for from has have in is it its of on or that the to was were
-    will with we our their this these those which not been but they he she""".split()
+    ["a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "have", "in", "is", "it", "its", "of", "on", "or", "that", "the", "to", "was", "were", "will", "with", "we", "our", "their", "this", "these", "those", "which", "not", "been", "but", "they", "he", "she"]
 )
 
 
@@ -56,7 +56,7 @@ class DeterministicEmbeddingProvider(EmbeddingProvider):
         for text in texts:
             tokens = _tokenize(text)
             total_tokens += len(tokens)
-            bigrams = [f"{first}_{second}" for first, second in zip(tokens, tokens[1:])]
+            bigrams = [f"{first}_{second}" for first, second in pairwise(tokens)]
             counts = Counter(tokens)
             counts.update(Counter(bigrams))
             vector = np.zeros(self.dimension, dtype=np.float32)

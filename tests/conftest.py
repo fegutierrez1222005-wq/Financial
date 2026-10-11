@@ -12,7 +12,7 @@ import os
 import tempfile
 from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -73,12 +73,12 @@ def db() -> Iterator[DbSession]:
 
 
 @pytest.fixture(scope="session")
-def app():  # noqa: ANN201
+def app():
     return create_app()
 
 
 @pytest.fixture
-def client(app) -> Iterator[TestClient]:  # noqa: ANN001
+def client(app) -> Iterator[TestClient]:
     with TestClient(app, raise_server_exceptions=False) as test_client:
         yield test_client
 
@@ -112,7 +112,7 @@ def _next_email() -> str:
 
 
 @pytest.fixture
-def make_account(client: TestClient):  # noqa: ANN201
+def make_account(client: TestClient):
     """Register an account and return it with its demo workspace resolved."""
 
     def factory(*, seed_demo: bool = True, email: str | None = None) -> Account:
@@ -154,7 +154,7 @@ def make_account(client: TestClient):  # noqa: ANN201
 
 
 @pytest.fixture
-def account(make_account) -> Account:  # noqa: ANN001
+def account(make_account) -> Account:
     return make_account()
 
 
@@ -198,7 +198,7 @@ def create_run(
                 "question": question,
                 "inputs": inputs or {},
                 "information_cutoff": (
-                    information_cutoff.astimezone(timezone.utc).isoformat()
+                    information_cutoff.astimezone(UTC).isoformat()
                     if information_cutoff
                     else None
                 ),

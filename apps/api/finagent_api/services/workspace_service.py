@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session as DbSession
@@ -75,7 +75,7 @@ def create_organization(
             organization_id=organization.id, user_id=owner.id, role=WorkspaceRole.OWNER.value
         )
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     db.add(
         Subscription(
             organization_id=organization.id,
@@ -225,7 +225,7 @@ def invite_member(
         role=role.value,
         token_hash=token_hash,
         invited_by_user_id=invited_by.id,
-        expires_at=datetime.now(timezone.utc) + timedelta(days=INVITATION_TTL_DAYS),
+        expires_at=datetime.now(UTC) + timedelta(days=INVITATION_TTL_DAYS),
     )
     db.add(invitation)
     db.flush()
@@ -244,7 +244,7 @@ def invite_member(
 
 def accept_invitation(db: DbSession, *, token: str, user: User) -> WorkspaceMember:
     invitation = db.scalar(select(Invitation).where(Invitation.token_hash == hash_token(token)))
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if invitation is None or invitation.revoked_at is not None:
         raise NotFoundError("invitation not found")
     if invitation.accepted_at is not None:

@@ -18,7 +18,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from finagent_core.schemas.enums import EvaluationDimension
-
 from finagent_evaluation.evaluators.base import (
     DimensionScore,
     EvaluatorKind,

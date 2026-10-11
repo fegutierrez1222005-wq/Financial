@@ -100,7 +100,7 @@ def compute_metrics(
 
     equity = equity.astype(float)
     returns = equity.pct_change().dropna()
-    metrics.trading_days = int(len(equity))
+    metrics.trading_days = len(equity)
     metrics.total_return_pct = float((equity.iloc[-1] / equity.iloc[0] - 1.0) * 100.0)
 
     years = max(len(equity) / TRADING_DAYS, 1.0 / TRADING_DAYS)

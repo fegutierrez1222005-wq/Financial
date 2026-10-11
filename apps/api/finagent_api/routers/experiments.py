@@ -39,7 +39,7 @@ RANKING_BASIS = (
 )
 
 
-def _experiment_response(db, experiment) -> ExperimentResponse:  # noqa: ANN001
+def _experiment_response(db, experiment) -> ExperimentResponse:
     arms = experiment_service.experiment_arms(db, experiment.id)
     return ExperimentResponse.model_validate(experiment).model_copy(
         update={"arms": [ExperimentRunResponse.model_validate(arm) for arm in arms]}
@@ -176,7 +176,7 @@ def get_benchmark(benchmark_id: str, db: Db, context: ReadBenchmark) -> Benchmar
     )
 
 
-def _benchmark_response(db, benchmark) -> BenchmarkResponse:  # noqa: ANN001
+def _benchmark_response(db, benchmark) -> BenchmarkResponse:
     entries = experiment_service.benchmark_entries(db, benchmark.id)
     return BenchmarkResponse.model_validate(benchmark).model_copy(
         update={

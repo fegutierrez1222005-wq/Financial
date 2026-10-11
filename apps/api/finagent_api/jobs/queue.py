@@ -17,8 +17,9 @@ the backend.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from finagent_api.settings import Settings, get_settings
 from finagent_core.logging import get_logger
@@ -89,7 +90,7 @@ class JobQueue:
         logger.info("job_started", extra={"job_name": job_name, "backend": "inline"})
         try:
             result = func(**kwargs)
-        except Exception as exc:  # noqa: BLE001 - the handle carries the failure to the caller
+        except Exception as exc:
             logger.exception("job_failed", extra={"job_name": job_name})
             return JobHandle(
                 job_name=job_name, backend="inline", completed=True, error=str(exc)[:500]
@@ -103,7 +104,7 @@ class JobQueue:
 
             async_result = run_job.delay(job_name, kwargs)
             return JobHandle(job_name=job_name, backend="celery", job_id=async_result.id)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
                 "celery_submit_failed", extra={"job_name": job_name, "detail": str(exc)[:200]}
             )

@@ -19,7 +19,6 @@ from typing import Any
 from finagent_core.logging import get_logger
 from finagent_core.models.base import ChatMessage
 from finagent_core.schemas.enums import EvaluationDimension
-
 from finagent_evaluation.evaluators.base import (
     EvaluationContext,
     Evaluator,
@@ -100,7 +99,7 @@ class LlmJudgeEvaluator(Evaluator):
                 max_tokens=800,
                 response_format="json",
             )
-        except Exception as exc:  # noqa: BLE001 - judge failure must not fail the evaluation
+        except Exception as exc:
             logger.warning("judge_failed", extra={"error": type(exc).__name__, "model": model})
             outcome.warnings.append(
                 "The LLM judge could not be reached; qualitative dimensions were scored by "

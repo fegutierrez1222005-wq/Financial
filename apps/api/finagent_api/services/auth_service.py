@@ -7,14 +7,13 @@ provider can replace it without touching routers.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DbSession
 
-from finagent_api.db.models import Organization, OrganizationMember
+from finagent_api.db.models import Organization, OrganizationMember, User
 from finagent_api.db.models import Session as SessionRow
-from finagent_api.db.models import User
 from finagent_api.security.auth_provider import AuthenticatedIdentity, BaseAuthProvider
 from finagent_api.security.crypto import decrypt_secret, encrypt_secret
 from finagent_api.security.mfa import (
@@ -106,7 +105,7 @@ class CredentialAuthProvider(BaseAuthProvider):
     ) -> AuthenticatedIdentity:
         normalised = (email or "").strip().lower()
         user = self.db.scalar(select(User).where(User.email == normalised))
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if user and user.locked_until and user.locked_until > now:
             raise ForbiddenError(
@@ -197,7 +196,7 @@ class CredentialAuthProvider(BaseAuthProvider):
             ip_address=self.metadata.ip_address,
             user_agent=(self.metadata.user_agent or "")[:400] or None,
             mfa_satisfied=mfa_satisfied,
-            last_used_at=datetime.now(timezone.utc),
+            last_used_at=datetime.now(UTC),
         )
         self.db.add(session_row)
         self.db.flush()
@@ -227,7 +226,7 @@ class CredentialAuthProvider(BaseAuthProvider):
         session_row = self.db.scalar(
             select(SessionRow).where(SessionRow.refresh_token_hash == hash_token(refresh_token))
         )
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if session_row is None or session_row.revoked_at is not None or session_row.expires_at <= now:
             raise UnauthenticatedError("refresh token is not valid")
         user = self.db.get(User, session_row.user_id)
@@ -265,13 +264,13 @@ class CredentialAuthProvider(BaseAuthProvider):
             select(SessionRow).where(SessionRow.refresh_token_hash == hash_token(refresh_token))
         )
         if session_row is not None and session_row.revoked_at is None:
-            session_row.revoked_at = datetime.now(timezone.utc)
+            session_row.revoked_at = datetime.now(UTC)
             self.db.flush()
 
     def revoke_session(self, session_id: str, *, user_id: str) -> None:
         session_row = self.db.get(SessionRow, session_id)
         if session_row is not None and session_row.user_id == user_id:
-            session_row.revoked_at = datetime.now(timezone.utc)
+            session_row.revoked_at = datetime.now(UTC)
             self.db.flush()
 
     def revoke_all_sessions(self, user_id: str) -> int:
@@ -282,7 +281,7 @@ class CredentialAuthProvider(BaseAuthProvider):
                 )
             )
         )
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for row in rows:
             row.revoked_at = now
         self.db.flush()
@@ -315,7 +314,7 @@ class CredentialAuthProvider(BaseAuthProvider):
         if not verify_totp(secret, code):
             raise ValidationFailedError("that code is not valid; check your authenticator clock")
         user.mfa_enabled = True
-        user.mfa_confirmed_at = datetime.now(timezone.utc)
+        user.mfa_confirmed_at = datetime.now(UTC)
         self.db.flush()
         record_audit(
             self.db,

@@ -195,10 +195,12 @@ class MockModelProvider(ModelProvider):
         lines = [f"## Analysis: {question}", ""]
         if not evidence:
             return "\n".join(
-                lines
-                + [
-                    "No admissible evidence was retrieved for this task under the active "
-                    "information cutoff, so no factual conclusion is asserted.",
+                [
+                    *lines,
+                    (
+                        "No admissible evidence was retrieved for this task under the active "
+                        "information cutoff, so no factual conclusion is asserted."
+                    ),
                     "",
                     "**Confidence: 10%** (no supporting evidence)",
                 ]
@@ -341,7 +343,7 @@ class MockModelProvider(ModelProvider):
 
     def _field_terms(self, label: str) -> set[str]:
         """Search terms for a requested output field, including how filings phrase it."""
-        terms = {token for token in re.findall(r"[a-z]{3,}", label.lower())}
+        terms = set(re.findall(r"[a-z]{3,}", label.lower()))
         for alias_key, aliases in _FIELD_ALIASES.items():
             if alias_key in label.lower():
                 terms |= aliases
@@ -433,8 +435,10 @@ class MockModelProvider(ModelProvider):
             if any(token in str(item.get("text", "")).lower() for token in _NEGATIVE_TOKENS)
         ]
         return items[:3] or [
-            "No disconfirming evidence was found in the retrieved set; absence of evidence is not "
-            "evidence of absence and retrieval was limited to this workspace."
+            (
+                "No disconfirming evidence was found in the retrieved set; absence of evidence "
+                "is not evidence of absence and retrieval was limited to this workspace."
+            )
         ]
 
     def _confidence(

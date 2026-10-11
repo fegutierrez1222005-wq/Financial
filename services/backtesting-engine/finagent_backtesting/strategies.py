@@ -31,7 +31,7 @@ def _normalise_weights(scores: pd.Series, spec: BacktestSpec) -> dict[str, float
         return {}
     equal_weight = min(spec.max_position_weight, 1.0 / len(selected))
     investable = 1.0 - spec.min_cash_buffer
-    weights = {symbol: equal_weight for symbol in selected.index}
+    weights = dict.fromkeys(selected.index, equal_weight)
     total = sum(weights.values())
     if total > investable and total > 0:
         scale = investable / total
@@ -64,7 +64,7 @@ def low_volatility_signal(dataset: PriceDataset, spec: BacktestSpec, as_of: pd.T
     selected = volatility.dropna().sort_values(ascending=True).head(spec.strategy.top_n)
     equal_weight = min(spec.max_position_weight, 1.0 / max(len(selected), 1))
     return SignalResult(
-        {symbol: equal_weight for symbol in selected.index},
+        dict.fromkeys(selected.index, equal_weight),
         history.index[-1],
         {symbol: float(value) for symbol, value in volatility.dropna().items()},
     )
@@ -94,7 +94,7 @@ def equal_weight_signal(dataset: PriceDataset, spec: BacktestSpec, as_of: pd.Tim
     if not tradable:
         return SignalResult({}, history.index[-1], {})
     weight = min(spec.max_position_weight, (1.0 - spec.min_cash_buffer) / len(tradable))
-    return SignalResult({symbol: weight for symbol in tradable}, history.index[-1], {})
+    return SignalResult(dict.fromkeys(tradable, weight), history.index[-1], {})
 
 
 _STRATEGIES = {

@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 from sqlalchemy import select
 
-from finagent_api.db.models import DataConnector, DataSource, Dataset
+from finagent_api.db.models import DataConnector, Dataset, DataSource
 from finagent_api.deps import Db, WorkspaceContext, require_permission
 from finagent_api.rbac import Permission
 from finagent_api.schemas import (
+    DatasetResponse,
     DataSourceCreateRequest,
     DataSourceResponse,
-    DatasetResponse,
     DocumentResponse,
     EvidenceResponse,
     Message,
@@ -238,14 +238,14 @@ def create_data_source(
             is_demo=descriptor["is_demo"],
             capabilities=descriptor["capabilities"],
             config=payload.config,
-            last_checked_at=datetime.now(timezone.utc),
+            last_checked_at=datetime.now(UTC),
         )
         db.add(source)
         db.flush()
     else:
         source.name = payload.name
         source.config = payload.config
-        source.last_checked_at = datetime.now(timezone.utc)
+        source.last_checked_at = datetime.now(UTC)
 
     if payload.credential:
         db.add(

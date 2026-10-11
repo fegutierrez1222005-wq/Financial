@@ -11,7 +11,7 @@ model to "ignore future information" is not considered enforcement.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 from finagent_core.errors import ErrorCode, FinagentError
@@ -29,10 +29,10 @@ def ensure_utc(value: datetime | date | str) -> datetime:
         return ensure_utc(datetime.fromisoformat(value.strip().replace("Z", "+00:00")))
     if isinstance(value, datetime):
         if value.tzinfo is None:
-            return value.replace(tzinfo=timezone.utc)
-        return value.astimezone(timezone.utc)
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
     if isinstance(value, date):
-        return datetime(value.year, value.month, value.day, tzinfo=timezone.utc)
+        return datetime(value.year, value.month, value.day, tzinfo=UTC)
     raise TypeError(f"unsupported timestamp type: {type(value)!r}")
 
 

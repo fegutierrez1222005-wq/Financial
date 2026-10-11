@@ -11,7 +11,6 @@ import re
 
 from finagent_core.numeric import NumericMention, Unit, comparable, extract_numbers, values_match
 from finagent_core.schemas.enums import ClaimSupport, EvaluationDimension
-
 from finagent_evaluation.cases import EvaluationMethod
 from finagent_evaluation.evaluators.base import (
     EvaluationContext,

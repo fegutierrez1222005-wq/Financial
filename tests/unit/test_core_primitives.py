@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 import pytest
 
@@ -22,40 +22,40 @@ from finagent_core.numeric import (
 
 class TestAsOfContext:
     def test_naive_datetimes_are_treated_as_utc(self) -> None:
-        assert ensure_utc(datetime(2023, 1, 1)).tzinfo is timezone.utc
-        assert ensure_utc(date(2023, 1, 1)).tzinfo is timezone.utc
-        assert ensure_utc("2023-01-01T00:00:00Z").tzinfo is timezone.utc
+        assert ensure_utc(datetime(2023, 1, 1)).tzinfo is UTC  # noqa: DTZ001 - naive input is the case under test
+        assert ensure_utc(date(2023, 1, 1)).tzinfo is UTC
+        assert ensure_utc("2023-01-01T00:00:00Z").tzinfo is UTC
 
     def test_boundary_is_inclusive(self) -> None:
-        cutoff = datetime(2023, 6, 30, 12, 0, tzinfo=timezone.utc)
+        cutoff = datetime(2023, 6, 30, 12, 0, tzinfo=UTC)
         context = AsOfContext(cutoff=cutoff)
         assert context.allows(cutoff)
-        assert not context.allows(datetime(2023, 6, 30, 12, 0, 1, tzinfo=timezone.utc))
+        assert not context.allows(datetime(2023, 6, 30, 12, 0, 1, tzinfo=UTC))
 
     def test_unknown_timestamps_are_inadmissible_under_a_cutoff(self) -> None:
-        assert not AsOfContext(cutoff=datetime(2023, 1, 1, tzinfo=timezone.utc)).allows(None)
+        assert not AsOfContext(cutoff=datetime(2023, 1, 1, tzinfo=UTC)).allows(None)
         assert AsOfContext(cutoff=None).allows(None)
 
     def test_strict_mode_raises_and_lenient_mode_filters(self) -> None:
-        strict = AsOfContext(cutoff=datetime(2023, 1, 1, tzinfo=timezone.utc))
+        strict = AsOfContext(cutoff=datetime(2023, 1, 1, tzinfo=UTC))
         with pytest.raises(LookAheadViolation):
-            strict.check(datetime(2024, 1, 1, tzinfo=timezone.utc), subject="FY2023 10-K")
+            strict.check(datetime(2024, 1, 1, tzinfo=UTC), subject="FY2023 10-K")
 
-        lenient = AsOfContext(cutoff=datetime(2023, 1, 1, tzinfo=timezone.utc), strict=False)
-        assert lenient.check(datetime(2024, 1, 1, tzinfo=timezone.utc), subject="FY2023 10-K") is False
+        lenient = AsOfContext(cutoff=datetime(2023, 1, 1, tzinfo=UTC), strict=False)
+        assert lenient.check(datetime(2024, 1, 1, tzinfo=UTC), subject="FY2023 10-K") is False
         assert lenient.filtered_subjects == ["FY2023 10-K"]
 
     def test_filter_records_drops_unknown_and_future_timestamps(self) -> None:
-        context = AsOfContext(cutoff=datetime(2023, 6, 30, tzinfo=timezone.utc))
+        context = AsOfContext(cutoff=datetime(2023, 6, 30, tzinfo=UTC))
         records = [
-            {"id": "past", "publication_timestamp": datetime(2023, 1, 1, tzinfo=timezone.utc)},
-            {"id": "future", "publication_timestamp": datetime(2024, 1, 1, tzinfo=timezone.utc)},
+            {"id": "past", "publication_timestamp": datetime(2023, 1, 1, tzinfo=UTC)},
+            {"id": "future", "publication_timestamp": datetime(2024, 1, 1, tzinfo=UTC)},
             {"id": "unknown", "publication_timestamp": None},
         ]
         assert [record["id"] for record in context.filter_records(records)] == ["past"]
 
     def test_describes_itself_for_the_trace(self) -> None:
-        historical = AsOfContext(cutoff=datetime(2023, 1, 1, tzinfo=timezone.utc))
+        historical = AsOfContext(cutoff=datetime(2023, 1, 1, tzinfo=UTC))
         assert historical.is_historical is True
         assert AsOfContext(cutoff=None).is_historical is False
 
@@ -85,7 +85,8 @@ class TestNumerics:
     def test_units_must_be_comparable(self) -> None:
         percent = parse_number("18.0%")
         money = parse_number("$18.0 million")
-        assert percent is not None and money is not None
+        assert percent is not None
+        assert money is not None
         assert not comparable(percent, money), "a percentage is not a dollar amount"
 
     def test_in_range_is_inclusive_and_tolerates_open_bounds(self) -> None:
@@ -168,7 +169,7 @@ class TestDemoDataset:
 
 
 class TestLogging:
-    def test_a_log_field_cannot_crash_the_operation_it_describes(self, caplog) -> None:  # noqa: ANN001
+    def test_a_log_field_cannot_crash_the_operation_it_describes(self, caplog) -> None:
         """``filename`` and ``module`` collide with LogRecord attributes.
 
         Before this guard, ingesting a document raised ``KeyError`` from inside the logging
@@ -178,7 +179,11 @@ class TestLogging:
 
         logger = get_logger("tests.logging")
         with caplog.at_level("INFO"):
-            logger.info("document_ingested", extra={"filename": "acme.pdf", "pages": 3})
+            # G101: the collision with LogRecord.filename is exactly what is under test.
+            logger.info(
+                "document_ingested",
+                extra={"filename": "acme.pdf", "pages": 3},  # noqa: G101
+            )
 
         record = caplog.records[-1]
         assert record.extra_filename == "acme.pdf"
@@ -200,12 +205,12 @@ class TestMockProvider:
     """The deterministic provider must be honest, not merely offline."""
 
     @pytest.fixture
-    def provider(self):  # noqa: ANN201
+    def provider(self):
         from finagent_core.models.mock_provider import MockModelProvider
 
         return MockModelProvider()
 
-    def test_a_question_is_never_quoted_as_an_assertion(self, provider) -> None:  # noqa: ANN001
+    def test_a_question_is_never_quoted_as_an_assertion(self, provider) -> None:
         text = (
             "Analyst: Any update on the patent litigation that was disclosed last quarter? "
             "Chief Financial Officer: The matter remains in discovery and we have not accrued "
@@ -215,7 +220,7 @@ class TestMockProvider:
         assert sentences
         assert not any(sentence.rstrip().endswith("?") for sentence in sentences)
 
-    def test_a_heading_is_not_quoted_as_a_claim(self, provider) -> None:  # noqa: ANN001
+    def test_a_heading_is_not_quoted_as_a_claim(self, provider) -> None:
         text = (
             "Management's Discussion and Analysis of Financial Condition and Results of Operations\n"
             "Revenue increased 18.0% to $4,820.0 million in fiscal 2023."
@@ -224,14 +229,16 @@ class TestMockProvider:
 
     def test_a_clause_is_tidied_rather_than_left_ending_in_a_stray_semicolon(
         self, provider
-    ) -> None:  # noqa: ANN001
-        text = "A single distributor accounted for 11.2% of revenue in fiscal 2023; " \
-               "no other customer exceeded 10.0%."
+    ) -> None:
+        text = (
+            "A single distributor accounted for 11.2% of revenue in fiscal 2023; "
+            "no other customer exceeded 10.0%."
+        )
         for sentence in (provider._informative_sentence(text, "distributor concentration"),):
             assert not sentence.endswith(";.")
             assert sentence.endswith(".")
 
-    def test_coverage_reports_a_field_the_evidence_does_not_establish(self, provider) -> None:  # noqa: ANN001
+    def test_coverage_reports_a_field_the_evidence_does_not_establish(self, provider) -> None:
         """Saying "not established" must be true when it is said."""
         evidence = [
             {
@@ -245,7 +252,7 @@ class TestMockProvider:
         assert "$0.91" in lines[0], "a field the evidence does establish must be answered"
         assert "not established by the retrieved evidence" in lines[1]
 
-    def test_output_is_composed_only_from_retrieved_text(self, provider) -> None:  # noqa: ANN001
+    def test_output_is_composed_only_from_retrieved_text(self, provider) -> None:
         """The provider must never invent a financial figure."""
         from finagent_core.numeric import extract_numbers
 
@@ -269,12 +276,12 @@ class TestSandbox:
     """The sandbox must run real analysis code and refuse everything else."""
 
     @pytest.fixture(scope="class")
-    def sandbox(self):  # noqa: ANN201
+    def sandbox(self):
         from finagent_agent_runner.sandbox import PythonSandbox
 
         return PythonSandbox(timeout_seconds=15, memory_mb=512, cpu_seconds=10)
 
-    def test_runs_ordinary_analysis_code(self, sandbox) -> None:  # noqa: ANN001
+    def test_runs_ordinary_analysis_code(self, sandbox) -> None:
         outcome = sandbox.run(
             "import pandas as pd\n"
             "frame = pd.DataFrame({'revenue': [4084.7, 4820.0]})\n"
@@ -294,7 +301,7 @@ class TestSandbox:
             "import requests\nresult = {}",
         ],
     )
-    def test_refuses_escapes(self, sandbox, code: str) -> None:  # noqa: ANN001
+    def test_refuses_escapes(self, sandbox, code: str) -> None:
         """Refusal may happen in the static scan or at run time; either is acceptable,
         silently executing is not."""
         from finagent_core.errors import SandboxDeniedError
@@ -306,13 +313,13 @@ class TestSandbox:
         assert not outcome.succeeded, f"the sandbox executed forbidden code: {code}"
         assert outcome.error
 
-    def test_enforces_the_wall_clock_timeout(self, sandbox) -> None:  # noqa: ANN001
+    def test_enforces_the_wall_clock_timeout(self, sandbox) -> None:
         from finagent_core.errors import SandboxTimeoutError
 
         with pytest.raises(SandboxTimeoutError):
             sandbox.run("while True:\n    pass\n", timeout_seconds=3)
 
-    def test_describes_its_own_limits(self, sandbox) -> None:  # noqa: ANN001
+    def test_describes_its_own_limits(self, sandbox) -> None:
         described = sandbox.describe()
         assert described["network"] == "disabled"
         assert described["timeout_seconds"] > 0

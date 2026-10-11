@@ -6,7 +6,7 @@ Without credentials they report ``unavailable``; they never fall back to synthet
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 import httpx
@@ -68,7 +68,7 @@ class AlphaVantageProvider(FinancialDataProvider):
             exchange=payload.get("Exchange"),
             currency=payload.get("Currency", "USD"),
             source=self.key,
-            publication_timestamp=datetime.now(timezone.utc),
+            publication_timestamp=datetime.now(UTC),
         )
 
     def get_prices(
@@ -95,7 +95,7 @@ class AlphaVantageProvider(FinancialDataProvider):
                     volume=float(row.get("6. volume", 0.0)),
                     source=self.key,
                     publication_timestamp=datetime(
-                        bar_date.year, bar_date.month, bar_date.day, 21, tzinfo=timezone.utc
+                        bar_date.year, bar_date.month, bar_date.day, 21, tzinfo=UTC
                     ),
                 )
             )
@@ -193,7 +193,7 @@ class PolygonProvider(FinancialDataProvider):
             exchange=payload.get("primary_exchange"),
             currency=str(payload.get("currency_name", "USD")).upper(),
             source=self.key,
-            publication_timestamp=datetime.now(timezone.utc),
+            publication_timestamp=datetime.now(UTC),
         )
 
     def get_prices(
@@ -207,7 +207,7 @@ class PolygonProvider(FinancialDataProvider):
         bars = [
             PriceBar(
                 symbol=symbol.upper(),
-                bar_date=(bar_date := datetime.fromtimestamp(row["t"] / 1000, tz=timezone.utc).date()),
+                bar_date=(bar_date := datetime.fromtimestamp(row["t"] / 1000, tz=UTC).date()),
                 open=float(row["o"]),
                 high=float(row["h"]),
                 low=float(row["l"]),
@@ -216,7 +216,7 @@ class PolygonProvider(FinancialDataProvider):
                 volume=float(row.get("v", 0.0)),
                 source=self.key,
                 publication_timestamp=datetime(
-                    bar_date.year, bar_date.month, bar_date.day, 21, tzinfo=timezone.utc
+                    bar_date.year, bar_date.month, bar_date.day, 21, tzinfo=UTC
                 ),
             )
             for row in payload.get("results") or []
@@ -267,7 +267,7 @@ class UploadedCsvPriceProvider(FinancialDataProvider):
                     is_adjusted="adj_close" in row,
                     source=f"{self.key}:{self.dataset_name}",
                     publication_timestamp=datetime(
-                        bar_date.year, bar_date.month, bar_date.day, 21, tzinfo=timezone.utc
+                        bar_date.year, bar_date.month, bar_date.day, 21, tzinfo=UTC
                     ),
                 )
             )

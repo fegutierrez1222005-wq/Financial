@@ -56,7 +56,7 @@ TAGS_METADATA = [
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):  # noqa: ANN201
+async def lifespan(app: FastAPI):
     settings: Settings = get_settings()
     configure_logging(settings.log_level, json_output=settings.log_format == "json")
 

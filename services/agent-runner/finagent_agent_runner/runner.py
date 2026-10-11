@@ -16,9 +16,12 @@ import json
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
+from finagent_agent_runner.context import ToolContext
+from finagent_agent_runner.prompts import build_system_prompt, build_task_message
+from finagent_agent_runner.tools.base import ToolRegistry
 from finagent_core.cutoff import AsOfContext
 from finagent_core.errors import AgentStepLimitError, AgentTimeoutError, ErrorCode, FinagentError
 from finagent_core.logging import get_logger, log_context
@@ -35,10 +38,6 @@ from finagent_core.schemas.research import (
     UsageSummary,
 )
 from finagent_core.schemas.thesis import InvestmentThesis
-
-from finagent_agent_runner.context import ToolContext
-from finagent_agent_runner.prompts import build_system_prompt, build_task_message
-from finagent_agent_runner.tools.base import ToolRegistry
 
 logger = get_logger(__name__)
 
@@ -95,7 +94,7 @@ class AgentRunner:
         extra_task_context: dict[str, Any] | None = None,
     ) -> RunResult:
         started = time.perf_counter()
-        started_at = datetime.now(timezone.utc)
+        started_at = datetime.now(UTC)
         state = _RunState()
 
         cutoff = spec.information_cutoff or task.information_cutoff
@@ -181,7 +180,7 @@ class AgentRunner:
         result.usage = state.usage
         result.warnings = state.warnings
         result.messages = [message.model_dump() for message in messages]
-        result.finished_at = datetime.now(timezone.utc)
+        result.finished_at = datetime.now(UTC)
         logger.info(
             "agent_run_finished",
             extra={
@@ -376,7 +375,7 @@ class AgentRunner:
                         state.warnings.append(
                             "Thesis is missing required sections: " + ", ".join(missing)
                         )
-                except Exception:  # noqa: BLE001 - validation detail is not user-facing
+                except Exception:
                     state.warnings.append("Structured thesis output failed schema validation.")
         if result.confidence is None:
             match = _CONFIDENCE_RE.search(content or "")
@@ -413,7 +412,7 @@ def _truncate_payload(payload: Any) -> Any:
         summary: dict[str, Any] = {}
         for key, value in payload.items():
             if isinstance(value, list) and len(value) > 5:
-                summary[key] = value[:5] + [f"... {len(value) - 5} more"]
+                summary[key] = [*value[:5], f"... {len(value) - 5} more"]
             elif isinstance(value, str) and len(value) > 1200:
                 summary[key] = value[:1200] + "..."
             else:

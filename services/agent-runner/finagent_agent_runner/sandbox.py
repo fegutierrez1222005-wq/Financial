@@ -15,6 +15,7 @@ dedicated container/gVisor sandbox worker; this interface is unchanged when that
 from __future__ import annotations
 
 import ast
+import contextlib
 import json
 import os
 import resource
@@ -163,7 +164,7 @@ class PythonSandbox:
                 "MPLBACKEND": "Agg",
             }
             started = time.perf_counter()
-            process = subprocess.Popen(  # noqa: S603 - fixed argv, no shell
+            process = subprocess.Popen(
                 [
                     self.python_executable,
                     "-I",
@@ -185,10 +186,9 @@ class PythonSandbox:
                 stdout, stderr = process.communicate(timeout=timeout)
             except subprocess.TimeoutExpired:
                 timed_out = True
-                try:
+                # The group may already be gone if the child exited as we timed out.
+                with contextlib.suppress(ProcessLookupError):
                     os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-                except ProcessLookupError:  # pragma: no cover - race with exit
-                    pass
                 stdout, stderr = process.communicate()
             wall_ms = int((time.perf_counter() - started) * 1000)
 

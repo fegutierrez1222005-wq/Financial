@@ -11,7 +11,7 @@ claims with their support verdicts, and citations linking claims to chunks.
 from __future__ import annotations
 
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -159,7 +159,7 @@ def install_builtin_suites(
                     category=case.category,
                     evaluation_method=case.evaluation_method,
                     information_cutoff=(
-                        datetime.fromisoformat(case.information_cutoff).replace(tzinfo=timezone.utc)
+                        datetime.fromisoformat(case.information_cutoff).replace(tzinfo=UTC)
                         if case.information_cutoff
                         else None
                     ),
@@ -228,7 +228,7 @@ def evaluate_run(db: DbSession, *, evaluation_id: str) -> Evaluation:
         raise NotFoundError("research run not found")
 
     evaluation.status = RunStatus.RUNNING.value
-    evaluation.started_at = datetime.now(timezone.utc)
+    evaluation.started_at = datetime.now(UTC)
     db.flush()
     started = time.perf_counter()
 
@@ -264,7 +264,7 @@ def evaluate_run(db: DbSession, *, evaluation_id: str) -> Evaluation:
 
     evaluation.duration_ms = int((time.perf_counter() - started) * 1000)
     evaluation.status = RunStatus.SUCCEEDED.value
-    evaluation.finished_at = datetime.now(timezone.utc)
+    evaluation.finished_at = datetime.now(UTC)
     db.flush()
 
     record_usage(
@@ -462,7 +462,7 @@ def run_suite(
             user_id=user_id,
         )
     evaluation.status = RunStatus.RUNNING.value
-    evaluation.started_at = datetime.now(timezone.utc)
+    evaluation.started_at = datetime.now(UTC)
     db.flush()
 
     started = time.perf_counter()
@@ -473,7 +473,7 @@ def run_suite(
 
     for case in cases:
         cutoff = (
-            datetime.fromisoformat(case.information_cutoff).replace(tzinfo=timezone.utc)
+            datetime.fromisoformat(case.information_cutoff).replace(tzinfo=UTC)
             if case.information_cutoff
             else None
         )
@@ -505,7 +505,7 @@ def run_suite(
         )
         try:
             research_service.execute_run(db, run.id)
-        except Exception as exc:  # noqa: BLE001 - a failed case is a result, not a crash
+        except Exception as exc:
             logger.warning(
                 "suite_case_run_failed",
                 extra={"case_key": case.key, "run_id": run.id, "error": type(exc).__name__},
@@ -523,7 +523,7 @@ def run_suite(
 
     aggregate = aggregate_suite_reports(reports)
     evaluation.status = RunStatus.SUCCEEDED.value
-    evaluation.finished_at = datetime.now(timezone.utc)
+    evaluation.finished_at = datetime.now(UTC)
     evaluation.duration_ms = int((time.perf_counter() - started) * 1000)
     evaluation.overall_score = aggregate["mean_overall"]
     evaluation.pass_rate = aggregate["pass_rate"]

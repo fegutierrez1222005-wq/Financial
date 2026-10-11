@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -253,8 +253,8 @@ def _persist_result(
         is_demo_data=result.is_demo_data,
         data_fingerprint=result.data_fingerprint,
         spec_fingerprint=result.spec_fingerprint,
-        started_at=datetime.now(timezone.utc),
-        finished_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
+        finished_at=datetime.now(UTC),
         error_code=None if result.is_valid else "BACKTEST_INVALID",
         error_message=(
             None

@@ -24,7 +24,7 @@ target_metadata = Base.metadata
 config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
 
-def include_object(obj, name, type_, reflected, compare_to) -> bool:  # noqa: ANN001, ARG001
+def include_object(obj, name, type_, reflected, compare_to) -> bool:
     """Leave the pgvector extension's own objects alone."""
     return not (type_ == "table" and name in {"alembic_version"})
 

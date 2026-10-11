@@ -92,7 +92,7 @@ class DbDocumentRetriever:
                     )
                 )
                 return [self._to_evidence(chunk, document, similarity=None) for chunk, document in rows]
-            except Exception as exc:  # noqa: BLE001 - fall back rather than fail a run
+            except Exception as exc:
                 logger.warning(
                     "pgvector_search_failed", extra={"detail": str(exc)[:200], "fallback": "numpy"}
                 )

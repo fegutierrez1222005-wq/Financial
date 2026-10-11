@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol
 
 import httpx
@@ -48,7 +48,7 @@ class UnconfiguredEmailSender:
 
     key: str = "unconfigured"
 
-    def send(self, *, to: str, subject: str, body: str) -> tuple[bool, str]:  # noqa: ARG002
+    def send(self, *, to: str, subject: str, body: str) -> tuple[bool, str]:
         return False, "No email transport is configured; the notification is available in-app only."
 
 
@@ -88,10 +88,10 @@ def notify(
     )
     if email_to:
         delivered, detail = _email_sender.send(to=email_to, subject=title, body=body or title)
-        notification.delivered_at = datetime.now(timezone.utc) if delivered else None
+        notification.delivered_at = datetime.now(UTC) if delivered else None
         notification.delivery_error = None if delivered else detail
     else:
-        notification.delivered_at = datetime.now(timezone.utc)
+        notification.delivered_at = datetime.now(UTC)
     db.add(notification)
     db.flush()
     return notification
@@ -110,7 +110,7 @@ def mark_read(db: DbSession, *, notification_id: str, organization_id: str) -> N
     notification = db.get(Notification, notification_id)
     if notification is None or notification.organization_id != organization_id:
         return None
-    notification.read_at = datetime.now(timezone.utc)
+    notification.read_at = datetime.now(UTC)
     db.flush()
     return notification
 
@@ -135,7 +135,7 @@ def dispatch_event(
             continue
         body = {
             "event": event_type,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "organization_id": organization_id,
             "workspace_id": workspace_id,
             "data": payload,
@@ -185,7 +185,7 @@ def attempt_delivery(db: DbSession, *, delivery_id: str) -> WebhookDelivery:
         delivery.response_body = response.text[:2000]
         if 200 <= response.status_code < 300:
             delivery.status = "DELIVERED"
-            delivery.delivered_at = datetime.now(timezone.utc)
+            delivery.delivered_at = datetime.now(UTC)
             hook.failure_count = 0
             hook.last_delivery_at = delivery.delivered_at
         else:
@@ -214,7 +214,7 @@ def _schedule_retry(delivery: WebhookDelivery, hook: Webhook) -> None:
             hook.is_active = False
         return
     delivery.status = "RETRY"
-    delivery.next_attempt_at = datetime.now(timezone.utc) + timedelta(
+    delivery.next_attempt_at = datetime.now(UTC) + timedelta(
         seconds=min(2**delivery.attempt_count, 3600)
     )
 
@@ -235,7 +235,7 @@ def evaluate_alerts(
         breached = value > alert.threshold if alert.comparator == ">" else value < alert.threshold
         if not breached:
             continue
-        alert.last_fired_at = datetime.now(timezone.utc)
+        alert.last_fired_at = datetime.now(UTC)
         alert.last_value = value
         fired.append(alert)
         notify(

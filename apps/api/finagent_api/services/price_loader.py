@@ -60,7 +60,7 @@ class DbPriceLoader:
                 bars = provider.get_prices(upper, start=start, end=end, as_of=as_of)
             except ProviderUnavailableError:
                 raise
-            except Exception as exc:  # noqa: BLE001 - one bad symbol must not fail the panel
+            except Exception as exc:
                 logger.warning(
                     "price_load_failed",
                     extra={"symbol": upper, "provider": provider.key, "detail": str(exc)[:160]},

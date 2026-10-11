@@ -8,9 +8,10 @@ credential.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Annotated, Callable
+from datetime import UTC, datetime
+from typing import Annotated
 
 from fastapi import Depends, Header, Query, Request
 from sqlalchemy import select
@@ -134,7 +135,7 @@ def _principal_from_access_token(token: str, db: DbSession, settings: Settings) 
     session_row = db.get(SessionRow, claims.session_id)
     if session_row is None or session_row.revoked_at is not None:
         raise UnauthenticatedError("session is no longer valid")
-    if session_row.expires_at <= datetime.now(timezone.utc):
+    if session_row.expires_at <= datetime.now(UTC):
         raise UnauthenticatedError("session expired")
 
     user = db.get(User, claims.user_id)
@@ -150,7 +151,7 @@ def _principal_from_api_key(raw_key: str, db: DbSession, settings: Settings) -> 
     api_key = db.scalar(select(ApiKey).where(ApiKey.key_hash == hash_api_key(raw_key)))
     if api_key is None or api_key.revoked_at is not None:
         raise UnauthenticatedError("invalid api key")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if api_key.expires_at and api_key.expires_at <= now:
         raise UnauthenticatedError("api key expired")
 

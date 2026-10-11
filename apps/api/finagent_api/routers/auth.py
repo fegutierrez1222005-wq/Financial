@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-
 from fastapi import APIRouter, Request, status
 
+from finagent_api.db.models import User
 from finagent_api.deps import CurrentPrincipal, Db
 from finagent_api.schemas import (
     AcceptInviteRequest,
@@ -21,7 +21,6 @@ from finagent_api.schemas import (
     TokenResponse,
     UserResponse,
 )
-from finagent_api.db.models import User
 from finagent_api.security.auth_provider import AuthenticatedIdentity, OAuthRegistry
 from finagent_api.services import seed_service, workspace_service
 from finagent_api.services.auth_service import (
@@ -38,7 +37,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def _require_user(principal) -> User:  # noqa: ANN001
+def _require_user(principal) -> User:
     """These endpoints act on a human account; an API key is not an acceptable credential."""
     if principal.user is None:
         raise ForbiddenError("this endpoint requires a user session, not an API key")
@@ -53,7 +52,7 @@ def _metadata(request: Request) -> RequestMetadata:
     )
 
 
-def _provider(db, request: Request) -> CredentialAuthProvider:  # noqa: ANN001
+def _provider(db, request: Request) -> CredentialAuthProvider:
     return CredentialAuthProvider(db, settings=get_settings(), metadata=_metadata(request))
 
 

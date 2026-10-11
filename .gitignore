@@ -58,3 +58,7 @@ docker-compose.override.yml
 out/
 node_modules/
 next-env.d.ts
+
+# Transient CI artefacts
+ci-migration-check.db
+.ruff_cache/

@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import secrets
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import jwt
@@ -41,7 +41,7 @@ class AccessTokenClaims:
 
 
 def create_access_token(claims: AccessTokenClaims, *, secret: str, expires_minutes: int = 30) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         **claims.as_dict(),
         "iss": ISSUER,
@@ -69,7 +69,7 @@ def decode_access_token(token: str, *, secret: str) -> AccessTokenClaims:
         is_platform_admin=bool(payload.get("adm", False)),
         mfa_satisfied=bool(payload.get("mfa", False)),
         expires_at=(
-            datetime.fromtimestamp(payload["exp"], tz=timezone.utc) if payload.get("exp") else None
+            datetime.fromtimestamp(payload["exp"], tz=UTC) if payload.get("exp") else None
         ),
     )
 
@@ -85,7 +85,7 @@ def hash_token(token: str) -> str:
 
 
 def refresh_expiry(days: int) -> datetime:
-    return datetime.now(timezone.utc) + timedelta(days=days)
+    return datetime.now(UTC) + timedelta(days=days)
 
 
 def create_invitation_token() -> tuple[str, str]:

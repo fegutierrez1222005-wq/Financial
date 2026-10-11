@@ -92,7 +92,7 @@ class RateLimiter:
             client.ping()
             logger.info("rate_limiter_backend", extra={"backend": "redis"})
             return client
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
                 "rate_limiter_redis_unavailable",
                 extra={"detail": str(exc)[:160], "fallback": "in_process"},
@@ -115,7 +115,7 @@ class RateLimiter:
                 if count == 1:
                     self._redis.expire(redis_key, bucket.window_seconds * 2)
                 return count <= bucket.limit, max(0, bucket.limit - int(count))
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("rate_limiter_redis_error", extra={"detail": str(exc)[:160]})
                 self._redis = None
 

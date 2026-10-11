@@ -103,7 +103,7 @@ def get_backtest(
 
 
 def _detail(
-    db, context: WorkspaceContext, backtest_id: str, *, include_trades: bool  # noqa: ANN001
+    db, context: WorkspaceContext, backtest_id: str, *, include_trades: bool
 ) -> BacktestDetailResponse:
     backtest = backtest_service.get_backtest(
         db, workspace_id=context.workspace_id, backtest_id=backtest_id

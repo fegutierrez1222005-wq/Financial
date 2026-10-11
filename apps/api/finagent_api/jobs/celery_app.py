@@ -54,7 +54,7 @@ try:  # pragma: no cover - Celery is an optional deployment dependency
     )
 
     @celery_app.task(name="finagent.run_job", bind=True, max_retries=2)
-    def run_job(self, job_name: str, kwargs: dict[str, Any]) -> Any:  # noqa: ANN001
+    def run_job(self, job_name: str, kwargs: dict[str, Any]) -> Any:
         func = registered_jobs().get(job_name)
         if func is None:
             raise KeyError(f"unknown job: {job_name}")

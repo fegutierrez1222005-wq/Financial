@@ -17,7 +17,14 @@ from collections.abc import Iterator
 from contextvars import ContextVar
 from typing import Any
 
-_LOG_CONTEXT: ContextVar[dict[str, Any]] = ContextVar("finagent_log_context", default={})
+#: The default is ``None`` rather than ``{}`` because a mutable default on a ContextVar is
+#: shared by every context that never set one, so an in-place update would leak a run's
+#: correlation ids into unrelated requests.
+_LOG_CONTEXT: ContextVar[dict[str, Any] | None] = ContextVar("finagent_log_context", default=None)
+
+
+def _context() -> dict[str, Any]:
+    return _LOG_CONTEXT.get() or {}
 
 _RESERVED = {
     "args", "asctime", "created", "exc_info", "exc_text", "filename", "funcName", "levelname",
@@ -45,7 +52,7 @@ def redact(payload: Any) -> Any:
 
 
 class JsonFormatter(logging.Formatter):
-    def format(self, record: logging.LogRecord) -> str:  # noqa: A003 - stdlib signature
+    def format(self, record: logging.LogRecord) -> str:
         base: dict[str, Any] = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(record.created))
             + f".{int(record.msecs):03d}Z",
@@ -53,7 +60,7 @@ class JsonFormatter(logging.Formatter):
             "logger": record.name,
             "message": record.getMessage(),
         }
-        base.update(redact(_LOG_CONTEXT.get()))
+        base.update(redact(_context()))
         extras = {
             key: value
             for key, value in record.__dict__.items()
@@ -75,18 +82,18 @@ class _SafeExtraLogger(logging.Logger):
     it is describing, so colliding keys are prefixed rather than rejected.
     """
 
-    def makeRecord(  # noqa: PLR0913 - stdlib signature
+    def makeRecord(
         self,
-        name,  # noqa: ANN001
-        level,  # noqa: ANN001
-        fn,  # noqa: ANN001
-        lno,  # noqa: ANN001
-        msg,  # noqa: ANN001
-        args,  # noqa: ANN001
-        exc_info,  # noqa: ANN001
-        func=None,  # noqa: ANN001
-        extra=None,  # noqa: ANN001
-        sinfo=None,  # noqa: ANN001
+        name,
+        level,
+        fn,
+        lno,
+        msg,
+        args,
+        exc_info,
+        func=None,
+        extra=None,
+        sinfo=None,
     ) -> logging.LogRecord:
         if extra:
             extra = {
@@ -125,20 +132,20 @@ def get_logger(name: str) -> logging.Logger:
 
 def bind_context(**values: Any) -> None:
     """Merge values into the ambient log context."""
-    current = dict(_LOG_CONTEXT.get())
+    current = dict(_context())
     current.update({key: value for key, value in values.items() if value is not None})
     _LOG_CONTEXT.set(current)
 
 
 def current_context() -> dict[str, Any]:
-    return dict(_LOG_CONTEXT.get())
+    return dict(_context())
 
 
 @contextlib.contextmanager
 def log_context(**values: Any) -> Iterator[None]:
     """Scoped binding; restores the previous context on exit."""
     token = _LOG_CONTEXT.set(
-        {**_LOG_CONTEXT.get(), **{key: value for key, value in values.items() if value is not None}}
+        {**_context(), **{key: value for key, value in values.items() if value is not None}}
     )
     try:
         yield

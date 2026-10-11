@@ -106,7 +106,7 @@ def record_audit(
     try:
         db.add(entry)
         db.flush()
-    except Exception:  # noqa: BLE001 - auditing must not break the request
+    except Exception:
         logger.exception("audit_write_failed", extra={"action": str(action)})
         return None
     logger.info(

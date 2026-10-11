@@ -57,7 +57,7 @@ class UnscannedScanner:
 
     name = "none"
 
-    def scan(self, payload: bytes, filename: str) -> ScanVerdict:  # noqa: ARG002
+    def scan(self, payload: bytes, filename: str) -> ScanVerdict:
         return ScanVerdict(
             scanned=False,
             clean=True,
@@ -82,7 +82,7 @@ class ExecutableContentScanner:
         (b"#!/usr/bin/env", "interpreter script"),
     )
 
-    def scan(self, payload: bytes, filename: str) -> ScanVerdict:  # noqa: ARG002
+    def scan(self, payload: bytes, filename: str) -> ScanVerdict:
         head = payload[:64]
         for signature, label in self._SIGNATURES:
             if head.startswith(signature):

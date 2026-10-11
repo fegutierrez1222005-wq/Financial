@@ -108,7 +108,9 @@ def upload_document(
     )
     document.status = DocumentStatus.INDEXED.value
 
-    for chunk, vector in zip(result.chunks, result.embeddings):
+    # strict: one vector per chunk is an invariant of the ingestion result. A silent
+    # mismatch would leave part of the document unretrievable with no error anywhere.
+    for chunk, vector in zip(result.chunks, result.embeddings, strict=True):
         db.add(
             DocumentChunk(
                 organization_id=organization_id,
@@ -140,8 +142,9 @@ def upload_document(
                 "document_persist_failed",
                 extra={"document_id": document.id, "detail": str(exc)[:160]},
             )
-            document.warnings = list(document.warnings) + [
-                "The original file could not be stored; only the extracted text is retained."
+            document.warnings = [
+                *document.warnings,
+                "The original file could not be stored; only the extracted text is retained.",
             ]
 
     # Tabular uploads also become a dataset with a quality report.

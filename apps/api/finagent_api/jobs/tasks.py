@@ -12,7 +12,7 @@ so the queue can log it.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from finagent_api.db.session import session_scope
@@ -24,7 +24,7 @@ from finagent_core.schemas.enums import RunStatus
 logger = get_logger(__name__)
 
 
-def _record_failure(model, row_id: str, exc: Exception) -> None:  # noqa: ANN001
+def _record_failure(model, row_id: str, exc: Exception) -> None:
     """Mark a row failed in a fresh session after its own transaction rolled back.
 
     A job that raises loses everything it wrote, including the status it set to explain
@@ -46,8 +46,8 @@ def _record_failure(model, row_id: str, exc: Exception) -> None:  # noqa: ANN001
             row.error_code = code
             row.error_message = message
             if hasattr(row, "finished_at"):
-                row.finished_at = datetime.now(timezone.utc)
-    except Exception:  # noqa: BLE001 - the original failure is what matters
+                row.finished_at = datetime.now(UTC)
+    except Exception:
         logger.exception("failure_record_failed", extra={"row_id": row_id})
 
 
@@ -196,7 +196,7 @@ def retry_pending_webhooks(*, limit: int = 50) -> dict[str, Any]:
     from finagent_api.db.models import WebhookDelivery
     from finagent_api.services import notification_service
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     attempted = 0
     with session_scope() as db:
         pending = db.scalars(
@@ -233,7 +233,7 @@ def expire_stuck_runs(*, older_than_seconds: int = 3600) -> dict[str, Any]:
 
     from finagent_api.db.models import ResearchRun
 
-    threshold = datetime.now(timezone.utc) - timedelta(seconds=older_than_seconds)
+    threshold = datetime.now(UTC) - timedelta(seconds=older_than_seconds)
     expired = 0
     with session_scope() as db:
         stuck = db.scalars(
@@ -246,7 +246,7 @@ def expire_stuck_runs(*, older_than_seconds: int = 3600) -> dict[str, Any]:
             run.status = RunStatus.FAILED.value
             run.error_code = "AGENT_TIMEOUT"
             run.error_message = "The run did not report a result and was expired by maintenance."
-            run.finished_at = datetime.now(timezone.utc)
+            run.finished_at = datetime.now(UTC)
             expired += 1
     if expired:
         logger.warning("expired_stuck_runs", extra={"count": expired})

@@ -421,7 +421,7 @@ class RunCreateRequest(ApiModel):
 
     @field_validator("task_id")
     @classmethod
-    def _require_a_task(cls, value: str | None, info) -> str | None:  # noqa: ANN001
+    def _require_a_task(cls, value: str | None, info) -> str | None:
         return value
 
 
@@ -659,7 +659,7 @@ class BacktestCreateRequest(ApiModel):
 
     @field_validator("end_date")
     @classmethod
-    def _ordered(cls, value: date, info) -> date:  # noqa: ANN001
+    def _ordered(cls, value: date, info) -> date:
         start = info.data.get("start_date")
         if start and value <= start:
             raise ValueError("end_date must be after start_date")

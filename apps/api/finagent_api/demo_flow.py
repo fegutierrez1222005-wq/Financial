@@ -11,7 +11,7 @@ the pipeline works, not to suggest anything about a real company.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.orm import Session as DbSession
@@ -35,7 +35,7 @@ DEMO_QUESTION = (
     "Cite the filings you used."
 )
 #: Mid-2023: the FY2023 10-K did not exist yet, so a correct agent must decline to use it.
-HISTORICAL_CUTOFF = datetime(2023, 6, 30, tzinfo=timezone.utc)
+HISTORICAL_CUTOFF = datetime(2023, 6, 30, tzinfo=UTC)
 
 
 def run_demo_flow(
@@ -128,7 +128,7 @@ def _run_and_score(
     *,
     organization_id: str,
     workspace_id: str,
-    agent,  # noqa: ANN001
+    agent,
     user_id: str,
     cutoff: datetime | None,
 ) -> dict[str, Any]:

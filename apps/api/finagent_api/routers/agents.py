@@ -50,7 +50,7 @@ def _draft(payload: AgentCreateRequest) -> agent_service.AgentDraft:
     return agent_service.AgentDraft(**kwargs)
 
 
-def _version_response(db, version: AgentVersion) -> AgentVersionResponse:  # noqa: ANN001
+def _version_response(db, version: AgentVersion) -> AgentVersionResponse:
     return AgentVersionResponse.model_validate(version).model_copy(
         update={
             "tools": agent_service.version_tools(db, version.id),
@@ -59,7 +59,7 @@ def _version_response(db, version: AgentVersion) -> AgentVersionResponse:  # noq
     )
 
 
-def _agent_response(db, agent: Agent) -> AgentResponse:  # noqa: ANN001
+def _agent_response(db, agent: Agent) -> AgentResponse:
     version = None
     if agent.current_version_id:
         current = db.get(AgentVersion, agent.current_version_id)

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
+from itertools import pairwise
 
 import pandas as pd
 
@@ -255,7 +256,7 @@ def validate_pre_run(
             for item in (BacktestSplit.TRAIN, BacktestSplit.VALIDATION, BacktestSplit.TEST)
         }
         ordered = sorted(windows.items(), key=lambda item: item[1][0])
-        for (left_name, left), (right_name, right) in zip(ordered, ordered[1:]):
+        for (left_name, left), (right_name, right) in pairwise(ordered):
             if left[1] >= right[0]:
                 report.add(
                     Finding(
@@ -293,7 +294,9 @@ def validate_execution(
     """Post-simulation checks on what the engine actually did."""
     report = ValidationReport()
 
-    for signal_date, trade_date in zip(signal_dates, trade_dates):
+    # strict: the engine records one trade date per signal date, so a length mismatch is a
+    # defect in the simulator rather than something to validate around silently.
+    for signal_date, trade_date in zip(signal_dates, trade_dates, strict=True):
         if signal_date >= trade_date:
             report.add(
                 Finding(

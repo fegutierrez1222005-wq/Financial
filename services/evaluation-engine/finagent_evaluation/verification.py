@@ -21,14 +21,11 @@ from dataclasses import dataclass, field
 from finagent_core.numeric import NumericMention, Unit, comparable, extract_numbers, values_match
 from finagent_core.schemas.enums import ClaimSupport
 from finagent_core.schemas.research import EvidenceItem
-
 from finagent_evaluation.claims import ClaimKind, ExtractedClaim
 
 _WORD_RE = re.compile(r"[a-z][a-z0-9\-']+")
 _STOPWORDS = frozenset(
-    """a an and are as at be been but by for from has have in into is it its of on or over per
-    that the their there these this those to was were will with within year years quarter
-    compared than versus company companys our we million billion approximately about""".split()
+    ["a", "an", "and", "are", "as", "at", "be", "been", "but", "by", "for", "from", "has", "have", "in", "into", "is", "it", "its", "of", "on", "or", "over", "per", "that", "the", "their", "there", "these", "this", "those", "to", "was", "were", "will", "with", "within", "year", "years", "quarter", "compared", "than", "versus", "company", "companys", "our", "we", "million", "billion", "approximately", "about"]
 )
 
 #: Relative tolerance when matching a claim's number against a source figure.
@@ -283,8 +280,10 @@ def verify_claims(
             # the evidence supports but does not cite is INFERRED, not a hallucination.
             for item in evidence:
                 support, similarity, checked, matched, _ = _score_against(claim, item)
-                if support in (ClaimSupport.DIRECTLY_SUPPORTED, ClaimSupport.PARTIALLY_SUPPORTED):
-                    if best is None or similarity > best[1]:
+                if support in (
+                    ClaimSupport.DIRECTLY_SUPPORTED,
+                    ClaimSupport.PARTIALLY_SUPPORTED,
+                ) and (best is None or similarity > best[1]):
                         best = (
                             ClaimSupport.INFERRED,
                             similarity,

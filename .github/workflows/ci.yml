@@ -31,7 +31,9 @@ jobs:
             ./services/backtesting-engine \
             ./services/data-ingestion \
             ./apps/api
-          pip install pytest httpx ruff
+          # Pinned: a new ruff release adds rules to existing groups, and CI must not
+          # start failing on code nobody touched.
+          pip install pytest httpx 'ruff==0.17.0'
 
       - name: Lint
         run: ruff check apps packages services tests
@@ -40,7 +42,7 @@ jobs:
         env:
           DATABASE_URL: sqlite:///./ci-migration-check.db
           SECRET_KEY: ci-only-secret-key-not-for-production
-        run: cd apps/api && alembic upgrade head
+        run: cd apps/api && alembic upgrade head && rm -f ci-migration-check.db
 
       # The seven critical controls run first and on their own, so a failure there is
       # unambiguous in the log rather than buried in the full suite.

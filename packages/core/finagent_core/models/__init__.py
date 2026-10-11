@@ -18,11 +18,14 @@ from finagent_core.models.openai_provider import OpenAIProvider
 from finagent_core.models.registry import ModelRegistry, build_default_registry
 
 __all__ = [
+    "MODEL_CATALOG",
     "AnthropicProvider",
     "ChatMessage",
     "GoogleProvider",
     "MockModelProvider",
+    "ModelInfo",
     "ModelProvider",
+    "ModelRegistry",
     "ModelResponse",
     "ModelUsage",
     "OpenAIProvider",
@@ -30,10 +33,7 @@ __all__ = [
     "Role",
     "ToolCallRequest",
     "ToolSpec",
-    "MODEL_CATALOG",
-    "ModelInfo",
+    "build_default_registry",
     "estimate_cost",
     "find_model",
-    "ModelRegistry",
-    "build_default_registry",
 ]

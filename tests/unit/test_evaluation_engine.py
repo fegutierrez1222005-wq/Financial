@@ -8,7 +8,7 @@ supported just because it sounds plausible.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -37,7 +37,7 @@ def evidence(chunk_id: str = "chunk-1", text: str = FY2023_TEXT, **kwargs) -> Ev
         page_number=1,
         text=text,
         similarity=0.9,
-        publication_timestamp=datetime(2024, 2, 14, tzinfo=timezone.utc),
+        publication_timestamp=datetime(2024, 2, 14, tzinfo=UTC),
         source="demo",
         is_demo=True,
         **kwargs,
@@ -143,7 +143,7 @@ class TestVerification:
 
 
 class TestScoring:
-    def _outcome(self, dimension, score, kind) -> EvaluatorOutcome:  # noqa: ANN001
+    def _outcome(self, dimension, score, kind) -> EvaluatorOutcome:
         return EvaluatorOutcome(
             scores=[
                 DimensionScore(dimension=dimension, score=score, evaluator="test", kind=kind)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func, select
@@ -23,7 +23,7 @@ from finagent_api.services.usage_service import cost_trend, research_efficiency,
 def workspace_dashboard(
     db: DbSession, *, organization_id: str, workspace_id: str, days: int = 30
 ) -> dict[str, Any]:
-    since = datetime.now(timezone.utc) - timedelta(days=days)
+    since = datetime.now(UTC) - timedelta(days=days)
 
     agents = int(
         db.scalar(
@@ -246,7 +246,7 @@ def admin_overview(db: DbSession, *, days: int = 30) -> dict[str, Any]:
         Workspace,
     )
 
-    since = datetime.now(timezone.utc) - timedelta(days=days)
+    since = datetime.now(UTC) - timedelta(days=days)
     counts = {
         "users": int(db.scalar(select(func.count(User.id))) or 0),
         "organizations": int(db.scalar(select(func.count(Organization.id))) or 0),

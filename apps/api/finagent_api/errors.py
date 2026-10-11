@@ -116,8 +116,14 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(Exception)
     async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
-        logger.exception(
-            "unhandled_exception", extra={"path": request.url.path, "exception_type": type(exc).__name__}
+        # A FastAPI handler runs outside the `except` block, so `sys.exc_info()` may be
+        # empty here. Passing the exception explicitly is what keeps the traceback in the
+        # log — without it the response would promise an incident record that has no
+        # stack trace in it.
+        logger.error(
+            "unhandled_exception",
+            exc_info=exc,
+            extra={"path": request.url.path, "exception_type": type(exc).__name__},
         )
         return JSONResponse(
             status_code=500,

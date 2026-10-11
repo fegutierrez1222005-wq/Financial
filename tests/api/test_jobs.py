@@ -8,6 +8,8 @@ owns instead of leaving it queued forever.
 
 from __future__ import annotations
 
+from datetime import UTC
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -76,7 +78,7 @@ class TestFailureRecording:
     ) -> None:
         """A worker can be killed mid-run. Without the sweep the run would sit in RUNNING
         forever and the dashboard would overstate activity."""
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
         from finagent_api.db.models import ResearchRun
         from finagent_api.jobs.tasks import expire_stuck_runs
@@ -95,7 +97,7 @@ class TestFailureRecording:
 
         db.expire_all()
         stuck = db.get(ResearchRun, stuck_id)
-        stuck.created_at = datetime.now(timezone.utc) - timedelta(hours=4)
+        stuck.created_at = datetime.now(UTC) - timedelta(hours=4)
         db.commit()
 
         assert expire_stuck_runs(older_than_seconds=3600)["expired"] >= 1

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import func, select
@@ -223,7 +223,7 @@ def execute_run(db: DbSession, run_id: str) -> ResearchRun:
     )
 
     run.status = RunStatus.RUNNING.value
-    run.started_at = datetime.now(timezone.utc)
+    run.started_at = datetime.now(UTC)
     db.flush()
 
     started = time.perf_counter()
@@ -236,7 +236,7 @@ def execute_run(db: DbSession, run_id: str) -> ResearchRun:
             run.status = RunStatus.FAILED.value
             run.error_code = error.code.value
             run.error_message = error.user_message
-            run.finished_at = datetime.now(timezone.utc)
+            run.finished_at = datetime.now(UTC)
             run.duration_ms = int((time.perf_counter() - started) * 1000)
             db.flush()
             record_audit(
@@ -260,7 +260,7 @@ def persist_run_result(db: DbSession, *, run: ResearchRun, result: RunResult) ->
     """Write the run's outputs, trace, evidence and usage records."""
     run.status = result.status if isinstance(result.status, str) else result.status.value
     run.started_at = result.started_at
-    run.finished_at = result.finished_at or datetime.now(timezone.utc)
+    run.finished_at = result.finished_at or datetime.now(UTC)
     run.duration_ms = result.usage.duration_ms
     run.input_tokens = result.usage.input_tokens
     run.output_tokens = result.usage.output_tokens
@@ -625,7 +625,7 @@ def run_debate(
             debate_role=role,
         )
         child.status = RunStatus.RUNNING.value
-        child.started_at = datetime.now(timezone.utc)
+        child.started_at = datetime.now(UTC)
         db.flush()
         role_runs[role] = child
         return build_tool_context(db, run=child, spec=spec)

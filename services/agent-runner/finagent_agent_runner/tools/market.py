@@ -3,17 +3,25 @@
 from __future__ import annotations
 
 import statistics
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
+from finagent_agent_runner.context import ToolContext
+from finagent_agent_runner.tools.base import Tool, ToolPermission, ToolResult
 from finagent_core.data.schemas import Periodicity, ProviderCapability
 from finagent_core.errors import ProviderUnavailableError, ValidationFailedError
 from finagent_core.numeric import safe_div
 
-from finagent_agent_runner.context import ToolContext
-from finagent_agent_runner.tools.base import Tool, ToolPermission, ToolResult
-
 MAX_BARS_RETURNED = 30
+
+
+def today_utc() -> date:
+    """Today in UTC, never in the server's local zone.
+
+    A host east of UTC would otherwise let a run reach a calendar day that has not begun
+    in market terms, which is a look-ahead the cutoff machinery would not catch.
+    """
+    return datetime.now(UTC).date()
 
 
 def parse_date(value: Any, fallback: date) -> date:
@@ -65,7 +73,7 @@ class MarketDataTool(Tool):
         provider = context.data_registry.resolve(
             capability, preferred=context.preferred_data_providers, allow_demo=context.allow_demo_data
         )
-        cutoff_date = context.as_of.cutoff.date() if context.as_of.cutoff else date.today()
+        cutoff_date = context.as_of.cutoff.date() if context.as_of.cutoff else today_utc()
         end = min(parse_date(arguments.get("end_date"), cutoff_date), cutoff_date)
         start = parse_date(arguments.get("start_date"), end - timedelta(days=365))
         context.record_usage("DATA_API_CALL", 1.0, provider=provider.key, capability=capability.value)
@@ -116,7 +124,7 @@ class MarketDataTool(Tool):
                     "note": "No price bars are admissible for this window under the information cutoff.",
                     "information_cutoff": context.as_of.describe(),
                 },
-                warnings=warnings + ["No admissible price data in the requested window."],
+                warnings=[*warnings, "No admissible price data in the requested window."],
             )
 
         closes = [bar.adj_close for bar in bars]

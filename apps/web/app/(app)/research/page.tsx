@@ -10,22 +10,13 @@ import {
   ProvenanceBadges,
   StatusBadge,
 } from "@/components/primitives";
+import { ResearchTaskFields, type TaskTemplate } from "@/components/research-task-fields";
 import { startResearchRun } from "@/app/(app)/actions";
 import { apiFetchOrNull } from "@/lib/api";
 import { formatDateTime, formatDuration, formatRatioAsPercent, formatUsd } from "@/lib/format";
 import type { Agent, ResearchRun } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Research" };
-
-type TaskTemplate = {
-  key: string;
-  name: string;
-  description: string;
-  required_inputs: string[];
-  required_output_fields: string[];
-  recommended_tools: string[];
-  guidance: string | null;
-};
 
 export default async function ResearchPage({
   searchParams,
@@ -75,58 +66,7 @@ export default async function ResearchPage({
                   </select>
                 </div>
 
-                <div>
-                  <label className="field-label" htmlFor="template">
-                    Task template
-                  </label>
-                  <select id="template" name="template" className="field-input" defaultValue="custom">
-                    {(templates ?? []).map((template) => (
-                      <option key={template.key} value={template.key}>
-                        {template.name}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="field-hint">
-                    A template declares the fields the answer must cover; the evaluator checks the
-                    output against that contract.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="field-label" htmlFor="question">
-                    Question
-                  </label>
-                  <textarea
-                    id="question"
-                    name="question"
-                    rows={4}
-                    className="field-input"
-                    placeholder="What was ACME Technologies' FY2023 revenue growth, and what drove it?"
-                  />
-                  <p className="field-hint">
-                    Leave blank to use the template's own question, built from the inputs below.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="field-label" htmlFor="ticker">
-                      Ticker
-                    </label>
-                    <input id="ticker" name="ticker" className="field-input" placeholder="ACME" />
-                  </div>
-                  <div>
-                    <label className="field-label" htmlFor="quarter">
-                      Quarter
-                    </label>
-                    <input
-                      id="quarter"
-                      name="quarter"
-                      className="field-input"
-                      placeholder="Q4 2023"
-                    />
-                  </div>
-                </div>
+                <ResearchTaskFields templates={templates ?? []} />
 
                 <div>
                   <label className="field-label" htmlFor="information_cutoff">

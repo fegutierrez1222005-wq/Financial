@@ -91,9 +91,21 @@ export async function startResearchRun(
   formData: FormData,
 ): Promise<ActionState> {
   const cutoff = String(formData.get("information_cutoff") ?? "").trim();
+
+  // The template decides which inputs exist, so everything that is not a field of the run
+  // itself is forwarded as a task input rather than matched against a hard-coded list.
+  const RUN_FIELDS = new Set([
+    "agent_id",
+    "model_override",
+    "template",
+    "question",
+    "information_cutoff",
+    "evaluation_suite_key",
+  ]);
   const inputs: Record<string, string> = {};
-  for (const key of ["ticker", "quarter", "period", "hypothesis", "focus", "universe"]) {
-    const value = String(formData.get(key) ?? "").trim();
+  for (const [key, raw] of formData.entries()) {
+    if (RUN_FIELDS.has(key) || typeof raw !== "string") continue;
+    const value = raw.trim();
     if (value) inputs[key] = value;
   }
 

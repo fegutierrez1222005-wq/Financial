@@ -8,18 +8,22 @@
   /api                    FastAPI: HTTP surface, persistence, orchestration
 /packages
   /core                   finagent_core — pure Python domain library (no DB, no HTTP)
-  /types                  @finagent/types — shared TypeScript contracts
-  /ui                     @finagent/ui — shared React primitives
-  /config                 @finagent/config — product naming and shared constants
 /services
   /agent-runner           finagent_agent_runner — agent loop, tools, sandbox, multi-agent
   /evaluation-engine      finagent_evaluation — claims, citations, evaluators, scoring
   /backtesting-engine     finagent_backtesting — simulator, metrics, validation, splits
   /data-ingestion         finagent_ingestion — validate, extract, chunk, embed, quality
-/infrastructure           docker, database, terraform skeletons
+/infrastructure           Dockerfiles and the development compose stack
 /docs                     PRD, architecture, database, security, evaluations, ...
 /tests                    unit, api, security and end-to-end tests
 ```
+
+There is deliberately no `packages/types`, `packages/ui` or `packages/config`. With a
+single frontend consumer, a shared package adds a build step and a version boundary while
+sharing nothing, and an unused package is a liability that drifts. The response contracts
+live in `apps/web/lib/types.ts` (mirrored from `/openapi.json`) and the UI primitives in
+`apps/web/components/primitives.tsx`. Extract them when a second consumer exists, not
+before.
 
 ### Dependency direction (strict)
 

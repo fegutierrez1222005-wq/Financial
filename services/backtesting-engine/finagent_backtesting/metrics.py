@@ -19,7 +19,8 @@ class TradeStats:
     trade_count: int = 0
     round_trips: int = 0
     win_rate: float = 0.0
-    profit_factor: float = 0.0
+    #: None when there were no losing trades: the ratio is undefined, not infinite.
+    profit_factor: float | None = None
     average_win: float = 0.0
     average_loss: float = 0.0
     gross_profit: float = 0.0
@@ -44,12 +45,13 @@ class BacktestMetrics:
     trade_count: int = 0
     round_trips: int = 0
     win_rate: float = 0.0
-    profit_factor: float = 0.0
+    #: None when there were no losing trades; see TradeStats.
+    profit_factor: float | None = None
     total_costs: float = 0.0
     trading_days: int = 0
     detail: dict[str, float] = field(default_factory=dict)
 
-    def as_dict(self) -> dict[str, float]:
+    def as_dict(self) -> dict[str, float | None]:
         return {
             "total_return_pct": self.total_return_pct,
             "cagr_pct": self.cagr_pct,
@@ -161,11 +163,10 @@ def summarise_round_trips(realised: list[float], *, total_costs: float, trade_co
         trade_count=trade_count,
         round_trips=len(realised),
         win_rate=float(len(wins) / len(realised) * 100.0) if realised else 0.0,
-        profit_factor=(
-            float(gross_profit / gross_loss)
-            if gross_loss > 0
-            else (float("inf") if gross_profit > 0 else 0.0)
-        ),
+        # With no losing trade the ratio is undefined, not infinite. Reporting None says
+        # "there is nothing to divide by"; reporting inf would read as a perfect score and
+        # is not even storable in a JSON column.
+        profit_factor=(float(gross_profit / gross_loss) if gross_loss > 0 else None),
         average_win=float(np.mean(wins)) if wins else 0.0,
         average_loss=float(np.mean(losses)) if losses else 0.0,
         gross_profit=gross_profit,

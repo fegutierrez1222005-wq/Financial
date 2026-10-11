@@ -11,11 +11,12 @@ from fastapi import APIRouter
 from sqlalchemy import text
 
 from finagent_api import __version__
-from finagent_api.db.session import get_engine
+from finagent_api.db.session import get_engine, is_postgres
 from finagent_api.jobs.queue import get_queue
 from finagent_api.middleware import get_rate_limiter
 from finagent_api.schemas import HealthResponse, ReadinessComponent, ReadinessResponse
 from finagent_api.services.providers import provider_overview
+from finagent_api.services.retrieval import pgvector_degradation
 from finagent_api.settings import get_settings
 
 router = APIRouter(tags=["health"])
@@ -48,6 +49,21 @@ def readiness() -> ReadinessResponse:
     queue = get_queue()
     components.append(
         ReadinessComponent(name="job_queue", ready=True, detail=f"backend={queue.backend}")
+    )
+
+    degraded = pgvector_degradation()
+    components.append(
+        ReadinessComponent(
+            name="vector_search",
+            ready=degraded is None,
+            detail=(
+                f"falling back to an in-process scan — {degraded}"
+                if degraded
+                else "indexed similarity search"
+                if is_postgres()
+                else "in-process similarity (SQLite)"
+            ),
+        )
     )
     components.append(
         ReadinessComponent(

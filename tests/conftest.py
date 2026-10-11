@@ -20,10 +20,16 @@ import pytest
 
 #: Must be set before anything imports application settings.
 _TMP = Path(tempfile.mkdtemp(prefix="finagent-test-"))
+
+#: SQLite by default so the suite needs no infrastructure. Point TEST_DATABASE_URL at a
+#: PostgreSQL + pgvector instance to run the identical suite against the production
+#: dialect — the only way to exercise the native vector column and the HNSW index.
+DATABASE_URL = os.environ.get("TEST_DATABASE_URL") or f"sqlite:///{_TMP / 'finagent.db'}"
+
 os.environ.update(
     {
         "ENVIRONMENT": "test",
-        "DATABASE_URL": f"sqlite:///{_TMP / 'finagent.db'}",
+        "DATABASE_URL": DATABASE_URL,
         "SECRET_KEY": "test-secret-key-not-for-production-use",
         "JOB_BACKEND": "inline",
         "RATE_LIMIT_ENABLED": "false",
@@ -57,6 +63,16 @@ def _database() -> Iterator[None]:
     get_settings.cache_clear()
     reset_engine()
     reset_provider_caches()
+
+    if DATABASE_URL.startswith("postgresql"):
+        # Start from an empty schema so a previous run cannot mask a missing migration.
+        from sqlalchemy import text
+
+        with get_engine().begin() as connection:
+            connection.execute(text("DROP SCHEMA public CASCADE"))
+            connection.execute(text("CREATE SCHEMA public"))
+            connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+
     create_all()
     yield
     get_engine().dispose()

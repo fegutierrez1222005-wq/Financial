@@ -34,6 +34,21 @@ logger = get_logger(__name__)
 #: Candidates scored in Python when the database cannot rank vectors itself.
 FALLBACK_CANDIDATE_LIMIT = 2_000
 
+#: Set when a pgvector query fails and retrieval degrades to the in-process scan. The
+#: fallback is correct but reads the whole workspace, so a permanent silent degradation
+#: would look like healthy-but-slow retrieval. ``/readiness`` reports this instead.
+_pgvector_degraded: str | None = None
+
+
+def pgvector_degradation() -> str | None:
+    """Why vector search fell back to the in-process scan, if it did."""
+    return _pgvector_degraded
+
+
+def reset_pgvector_degradation() -> None:
+    global _pgvector_degraded
+    _pgvector_degraded = None
+
 
 class DbDocumentRetriever:
     """Implements :class:`finagent_agent_runner.context.DocumentRetriever`."""
@@ -93,8 +108,12 @@ class DbDocumentRetriever:
                 )
                 return [self._to_evidence(chunk, document, similarity=None) for chunk, document in rows]
             except Exception as exc:
-                logger.warning(
-                    "pgvector_search_failed", extra={"detail": str(exc)[:200], "fallback": "numpy"}
+                global _pgvector_degraded
+                _pgvector_degraded = f"{type(exc).__name__}: {str(exc)[:200]}"
+                logger.error(
+                    "pgvector_search_failed",
+                    exc_info=exc,
+                    extra={"fallback": "in_process_scan", "degraded": True},
                 )
 
         rows = list(self.db.execute(statement.limit(FALLBACK_CANDIDATE_LIMIT)))

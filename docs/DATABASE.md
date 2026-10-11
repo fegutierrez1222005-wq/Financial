@@ -30,7 +30,7 @@ temperature, max_tokens, max_steps, output_format, risk_constraints, prompt_vers
 config_hash) · `agent_prompts` (version_number, content, content_hash) · `agent_tools`
 (tool_name, permissions) · `agent_models` · `agent_datasets`.
 
-`PATCH /agents/{id}` creates version *n+1*; versions are never mutated.
+`POST /agents/{id}/versions` creates version *n+1*; versions are never mutated.
 
 ### Data and documents
 `data_sources` (provider_key, status, is_demo, capabilities) · `data_connectors`
@@ -91,6 +91,29 @@ alembic upgrade head                        # apply
 alembic revision --autogenerate -m "..."    # author
 ```
 
-The baseline revision `0001_initial` creates `CREATE EXTENSION IF NOT EXISTS vector`, the
-full schema from ORM metadata (so baseline and models cannot drift), and an IVFFlat cosine
-index on `document_chunks.embedding`.
+The baseline revision `0001_initial_schema` installs `pgvector`, builds the full schema
+from ORM metadata (so baseline and models cannot drift), and creates an HNSW cosine index
+on `document_chunks.embedding`. HNSW rather than IVFFlat because IVFFlat has to be built
+against existing rows to choose its list count, and the index is created on an empty table.
+
+pgvector is a hard requirement on PostgreSQL: `Vector` maps to a `vector(1536)` column
+whenever the Python package is importable, so the table cannot be created without the
+extension. The migration says so plainly rather than failing later with
+`type vector does not exist`.
+
+### Running the test suite against PostgreSQL
+
+The suite defaults to SQLite so it needs no infrastructure, but the production dialect is
+where dialect-specific defects live — two were found this way: `cosine_distance` was
+missing from the `Vector` decorator, so every similarity query silently fell back to a
+sequential scan; and a non-finite `profit_factor` was accepted by SQLite and rejected by
+PostgreSQL's JSONB.
+
+```bash
+docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=finagent -e POSTGRES_USER=finagent \
+  -e POSTGRES_DB=finagent pgvector/pgvector:pg16
+TEST_DATABASE_URL="postgresql+psycopg://finagent:finagent@localhost:5432/finagent" pytest
+```
+
+The fixture drops and recreates the `public` schema first, so a previous run cannot mask a
+missing migration. CI runs the suite on both dialects.

@@ -83,8 +83,21 @@ FINAGENT_API_URL=http://localhost:8000 npm run dev
 
 ```bash
 python -m pytest tests/security -v     # the seven critical controls
-python -m pytest                       # everything
+python -m pytest                       # everything (SQLite, no infrastructure)
 ```
+
+The suite defaults to SQLite so it needs nothing installed, but dialect-specific defects
+only show up on the real thing — two were found that way, a missing vector comparator that
+silently degraded every similarity search to a sequential scan, and a non-finite metric
+that SQLite stores and PostgreSQL rejects. The identical suite runs against PostgreSQL:
+
+```bash
+docker run -d -p 5432:5432 -e POSTGRES_USER=finagent -e POSTGRES_PASSWORD=finagent \
+  -e POSTGRES_DB=finagent pgvector/pgvector:pg16
+TEST_DATABASE_URL="postgresql+psycopg://finagent:finagent@localhost:5432/finagent" pytest
+```
+
+CI runs both, plus the web build and the container images.
 
 ---
 

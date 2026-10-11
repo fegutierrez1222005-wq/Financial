@@ -49,6 +49,15 @@ HMAC-signed webhooks, notifications, private data isolation, customer-feedback m
 Planned: SAML/OIDC SSO (seam exists), SCIM, payment processor, private VPC deployment
 (Terraform skeletons), malware-scanner integration (interface exists), signed audit export.
 
+## Verified configurations
+
+| Configuration | Status |
+| --- | --- |
+| SQLite · inline jobs · deterministic providers | 113 tests, full demo flow, full UI walkthrough |
+| PostgreSQL 16 + pgvector · inline jobs | 113 tests, full demo flow, HNSW index confirmed in the query plan |
+| PostgreSQL + Redis + Celery worker · web UI | research runs, suite evaluations and backtests executed on a worker; pages update themselves |
+| Vendor model and data providers | **not exercised** — no credentials were available. The provider abstraction, availability reporting and cost estimation are in place and every provider reports itself unavailable rather than falling back silently. |
+
 ## Beyond
 Portfolio monitoring · investment-committee workflows · continuous earnings agents ·
 alternative data · options/credit/macro research · PE diligence · M&A analysis · compliance

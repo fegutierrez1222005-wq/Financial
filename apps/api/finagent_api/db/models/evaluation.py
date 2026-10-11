@@ -76,8 +76,10 @@ class Evaluation(UUIDMixin, TimestampMixin, WorkspaceScopedMixin, Base):
     status: Mapped[str] = mapped_column(EnumString, default="QUEUED", nullable=False, index=True)
     overall_score: Mapped[float | None] = mapped_column(Float)
     pass_rate: Mapped[float | None] = mapped_column(Float)
-    case_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    passed_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    #: Nullable because "not applicable" is not the same as zero: a run scored outside a
+    #: golden-dataset case has no cases, and reporting 0/0 would read as a failure.
+    case_count: Mapped[int | None] = mapped_column(Integer)
+    passed_count: Mapped[int | None] = mapped_column(Integer)
     hallucination_rate: Mapped[float | None] = mapped_column(Float)
     citation_coverage: Mapped[float | None] = mapped_column(Float)
     judge_model: Mapped[str | None] = mapped_column(String(120))

@@ -309,8 +309,10 @@ def _persist_report(
     evaluation.judge_model = judge_model
     evaluation.judge_is_mock = judge_is_mock
     evaluation.warnings = report.warnings
-    evaluation.case_count = 1 if report.case_key else 0
-    evaluation.passed_count = 1 if report.case_passed else 0
+    # A run scored outside a golden-dataset case has nothing to count. Reporting "0 cases"
+    # would read as a failure rather than as "not applicable".
+    evaluation.case_count = 1 if report.case_key else None
+    evaluation.passed_count = (1 if report.case_passed else 0) if report.case_key else None
     evaluation.summary = {
         "score": report.score.as_dict(),
         "verification": report.verification.as_dict(),

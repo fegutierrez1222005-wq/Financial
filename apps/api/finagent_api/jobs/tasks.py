@@ -17,20 +17,52 @@ from typing import Any
 
 from finagent_api.db.session import session_scope
 from finagent_api.jobs.queue import register_job
-from finagent_core.errors import FinagentError
+from finagent_core.errors import ErrorCode, FinagentError
 from finagent_core.logging import get_logger, log_context
 from finagent_core.schemas.enums import RunStatus
 
 logger = get_logger(__name__)
 
 
+def _record_failure(model, row_id: str, exc: Exception) -> None:  # noqa: ANN001
+    """Mark a row failed in a fresh session after its own transaction rolled back.
+
+    A job that raises loses everything it wrote, including the status it set to explain
+    the failure. Without this the row would sit in ``QUEUED`` forever and the UI would
+    show a run that is apparently still starting, hours later.
+    """
+    code = exc.code.value if isinstance(exc, FinagentError) else ErrorCode.INTERNAL_ERROR.value
+    message = (
+        exc.user_message
+        if isinstance(exc, FinagentError)
+        else "The job failed unexpectedly. The incident has been logged."
+    )
+    try:
+        with session_scope() as db:
+            row = db.get(model, row_id)
+            if row is None:
+                return
+            row.status = RunStatus.FAILED.value
+            row.error_code = code
+            row.error_message = message
+            if hasattr(row, "finished_at"):
+                row.finished_at = datetime.now(timezone.utc)
+    except Exception:  # noqa: BLE001 - the original failure is what matters
+        logger.exception("failure_record_failed", extra={"row_id": row_id})
+
+
 @register_job("research.execute_run")
 def execute_research_run(*, run_id: str) -> dict[str, Any]:
+    from finagent_api.db.models import ResearchRun
     from finagent_api.services import research_service
 
-    with log_context(run_id=run_id), session_scope() as db:
-        run = research_service.execute_run(db, run_id)
-        return {"run_id": run.id, "status": run.status}
+    try:
+        with log_context(run_id=run_id), session_scope() as db:
+            run = research_service.execute_run(db, run_id)
+            return {"run_id": run.id, "status": run.status}
+    except Exception as exc:
+        _record_failure(ResearchRun, run_id, exc)
+        raise
 
 
 @register_job("research.debate")
@@ -44,15 +76,20 @@ def run_debate(*, run_id: str, workspace_id: str) -> dict[str, Any]:
 
 @register_job("evaluation.evaluate_run")
 def evaluate_run(*, evaluation_id: str) -> dict[str, Any]:
+    from finagent_api.db.models import Evaluation
     from finagent_api.services import evaluation_service
 
-    with log_context(evaluation_id=evaluation_id), session_scope() as db:
-        evaluation = evaluation_service.evaluate_run(db, evaluation_id=evaluation_id)
-        return {
-            "evaluation_id": evaluation.id,
-            "status": evaluation.status,
-            "overall_score": evaluation.overall_score,
-        }
+    try:
+        with log_context(evaluation_id=evaluation_id), session_scope() as db:
+            evaluation = evaluation_service.evaluate_run(db, evaluation_id=evaluation_id)
+            return {
+                "evaluation_id": evaluation.id,
+                "status": evaluation.status,
+                "overall_score": evaluation.overall_score,
+            }
+    except Exception as exc:
+        _record_failure(Evaluation, evaluation_id, exc)
+        raise
 
 
 @register_job("evaluation.run_suite")
@@ -68,32 +105,40 @@ def run_suite(
     max_cases: int | None = None,
     evaluation_id: str | None = None,
 ) -> dict[str, Any]:
+    from finagent_api.db.models import Evaluation
     from finagent_api.services import evaluation_service
 
-    with log_context(evaluation_id=evaluation_id), session_scope() as db:
-        evaluation = evaluation_service.run_suite(
-            db,
-            organization_id=organization_id,
-            workspace_id=workspace_id,
-            suite_key=suite_key,
-            agent_id=agent_id,
-            agent_version_id=agent_version_id,
-            model_override=model_override,
-            user_id=user_id,
-            max_cases=max_cases,
-            evaluation_id=evaluation_id,
-        )
-        return {
-            "evaluation_id": evaluation.id,
-            "status": evaluation.status,
-            "pass_rate": evaluation.pass_rate,
-        }
+    try:
+        with log_context(evaluation_id=evaluation_id), session_scope() as db:
+            evaluation = evaluation_service.run_suite(
+                db,
+                organization_id=organization_id,
+                workspace_id=workspace_id,
+                suite_key=suite_key,
+                agent_id=agent_id,
+                agent_version_id=agent_version_id,
+                model_override=model_override,
+                user_id=user_id,
+                max_cases=max_cases,
+                evaluation_id=evaluation_id,
+            )
+            return {
+                "evaluation_id": evaluation.id,
+                "status": evaluation.status,
+                "pass_rate": evaluation.pass_rate,
+            }
+    except Exception as exc:
+        if evaluation_id:
+            _record_failure(Evaluation, evaluation_id, exc)
+        raise
 
 
 @register_job("backtest.execute")
 def execute_backtest(*, backtest_id: str, user_id: str | None = None) -> dict[str, Any]:
     from finagent_api.services import backtest_service
 
+    # A backtest's status lives on its per-split runs, so there is no parent row to mark
+    # failed; the error surfaces through the queue handle and the log.
     with log_context(backtest_id=backtest_id), session_scope() as db:
         runs = backtest_service.execute_backtest(db, backtest_id=backtest_id, user_id=user_id)
         return {
@@ -104,24 +149,34 @@ def execute_backtest(*, backtest_id: str, user_id: str | None = None) -> dict[st
 
 @register_job("experiment.execute")
 def execute_experiment(*, experiment_id: str, user_id: str | None = None) -> dict[str, Any]:
+    from finagent_api.db.models import Experiment
     from finagent_api.services import experiment_service
 
-    with log_context(experiment_id=experiment_id), session_scope() as db:
-        experiment = experiment_service.execute_experiment(
-            db, experiment_id=experiment_id, user_id=user_id
-        )
-        return {"experiment_id": experiment.id, "status": experiment.status}
+    try:
+        with log_context(experiment_id=experiment_id), session_scope() as db:
+            experiment = experiment_service.execute_experiment(
+                db, experiment_id=experiment_id, user_id=user_id
+            )
+            return {"experiment_id": experiment.id, "status": experiment.status}
+    except Exception as exc:
+        _record_failure(Experiment, experiment_id, exc)
+        raise
 
 
 @register_job("benchmark.execute")
 def execute_benchmark(*, benchmark_id: str, user_id: str | None = None) -> dict[str, Any]:
+    from finagent_api.db.models import Benchmark
     from finagent_api.services import experiment_service
 
-    with log_context(benchmark_id=benchmark_id), session_scope() as db:
-        benchmark = experiment_service.execute_benchmark(
-            db, benchmark_id=benchmark_id, user_id=user_id
-        )
-        return {"benchmark_id": benchmark.id, "status": benchmark.status}
+    try:
+        with log_context(benchmark_id=benchmark_id), session_scope() as db:
+            benchmark = experiment_service.execute_benchmark(
+                db, benchmark_id=benchmark_id, user_id=user_id
+            )
+            return {"benchmark_id": benchmark.id, "status": benchmark.status}
+    except Exception as exc:
+        _record_failure(Benchmark, benchmark_id, exc)
+        raise
 
 
 @register_job("webhook.deliver")

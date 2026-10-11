@@ -1,0 +1,74 @@
+---
+description: Security requirements for FINAGENT LAB. Read before touching authentication, authorisation, tenancy, secrets, uploads, or the Python sandbox.
+globs: apps/api/**/*.py,services/agent-runner/**/*.py,apps/web/**/*.ts,apps/web/**/*.tsx
+alwaysApply: false
+---
+
+# Security rules
+
+Each rule below has a test in `tests/security/test_critical_controls.py`. If you change
+behaviour here, the test must still pass — or the change is wrong.
+
+## Tenancy
+
+- Filter by `workspace_id` **in the query**, never after fetching. There must be no window
+  in which another tenant's data exists in memory.
+- **Cross-tenant access returns 404, never 403.** A 403 confirms the resource exists.
+- Platform-admin access to another workspace is read-only and audited.
+
+## Authorisation
+
+- Every route declares its permission:
+  `Depends(require_permission(Permission.X))`. Never re-derive role logic in a handler.
+- New permissions go in the matrix in `rbac.py` so the whole surface stays reviewable in
+  one screen.
+- An API key must never be able to administer anything. Add privileged permissions to
+  `API_KEY_FORBIDDEN`.
+- A member cannot grant a role above their own.
+
+## Secrets
+
+- **Never expose a provider API key to the browser, to a response, or to a log.**
+- Report availability as a boolean. `Settings.provider_status_summary()` is the only shape
+  a credential may take in a response.
+- Encrypt stored credentials (`encrypt_secret`); keep at most the last four characters in
+  clear text.
+- Plaintext API keys and webhook signing secrets are returned exactly once, at creation.
+  Only a hash is stored.
+- Add any new sensitive field name to `SENSITIVE_KEYS` in `finagent_core.logging`.
+
+## The web client
+
+- The browser never holds a token. The session lives in an **httpOnly** cookie and every
+  API call happens in a server component or server action.
+- `lib/api.ts` imports `server-only`. Keep it that way.
+
+## Code execution
+
+- **Never execute submitted Python in the API process.** It runs in
+  `PythonSandbox`: separate subprocess and process group, CPU/memory/file-size rlimits,
+  wall-clock timeout, no network, no filesystem, import allow-list.
+- Enforce the allow-list twice: a static AST scan before execution, and a restricted
+  `__builtins__` **in the sandbox namespace**. Do not delete names from the `builtins`
+  module — that breaks pandas, which uses `exec` and `compile` internally.
+- Containers run as a non-root user so a sandbox escape is not a container escape.
+
+## Input and output
+
+- Validate request bodies with Pydantic. A validation error names the field and never
+  echoes the value.
+- Cap uploads, check the type, hash the content.
+- **Never show a raw backend error to a user.** Return the platform error envelope with a
+  request id; log the detail server-side.
+- Security headers are set by middleware on every response.
+
+## Deletion
+
+- Content deletion is soft, so audit trails survive. Every retrieval path must filter
+  `deleted_at IS NULL`, and a deleted document must become unreachable immediately.
+
+## Data handling
+
+- `Organization.data_training_opt_in` defaults to `false`, is owner-only, and is audited.
+- State the policy where users can see it: *Customer data is isolated and is not used for
+  model training unless explicitly authorized.*

@@ -1,57 +1,64 @@
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+.eggs/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
-dist/
-build/
+coverage.xml
+htmlcov/
 .venv/
 venv/
 env/
-backend/.venv/
-frontend/venv/
-backend/venv/
-*.log
-coverage.xml
 
-# Node.js
+# Node
 node_modules/
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+.turbo/
 npm-debug.log*
-yarn-debug.log*
 yarn-error.log*
 
-# Environment variables
+# Environment / secrets
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-frontend/.env
-backend/.env
+.env.*
+!.env.example
+*.pem
+*.key
 
-# Database
+# Local state
 *.sqlite3
 *.db
 *.db-journal
+.local/
+storage/
+uploads/
 
-# IDE
-/.idea
-/.vscode
-*.swp
-*.swo
-
-# OS
+# Editors / OS
+.idea/
+.vscode/
 .DS_Store
 Thumbs.db
-
-# Docker
-docker-compose.override.yml
+*.swp
 
 # Logs
 logs/
 *.log
 
-# Temporary files
-*.tmp
-*.temp
+# Docker
+docker-compose.override.yml
 
+# Next.js
+.next/
+out/
+node_modules/
+next-env.d.ts
+
+# Transient CI artefacts
+ci-migration-check.db
+.ruff_cache/

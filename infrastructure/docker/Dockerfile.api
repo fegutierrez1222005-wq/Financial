@@ -1,0 +1,44 @@
+# syntax=docker/dockerfile:1.7
+FROM python:3.12-slim AS base
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential curl libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /srv
+
+COPY packages/core /srv/packages/core
+COPY services/agent-runner /srv/services/agent-runner
+COPY services/evaluation-engine /srv/services/evaluation-engine
+COPY services/backtesting-engine /srv/services/backtesting-engine
+COPY services/data-ingestion /srv/services/data-ingestion
+COPY apps/api /srv/apps/api
+
+RUN pip install --upgrade pip \
+    && pip install \
+        ./packages/core \
+        ./services/agent-runner \
+        ./services/evaluation-engine \
+        ./services/backtesting-engine \
+        ./services/data-ingestion \
+        "./apps/api[postgres,worker]"
+
+# The sandbox executes untrusted analysis code in a subprocess under rlimits; the API
+# itself must not run as root so a sandbox escape does not become a container escape.
+RUN useradd --create-home --uid 10001 finagent \
+    && mkdir -p /srv/storage \
+    && chown -R finagent:finagent /srv
+USER finagent
+
+ENV STORAGE_DIR=/srv/storage
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl -fsS http://localhost:8000/health || exit 1
+
+CMD ["uvicorn", "finagent_api.main:app", "--host", "0.0.0.0", "--port", "8000"]

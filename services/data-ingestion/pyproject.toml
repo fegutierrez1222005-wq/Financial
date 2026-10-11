@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finagent-ingestion"
+version = "0.1.0"
+description = "Document and dataset ingestion pipeline for FINAGENT LAB"
+requires-python = ">=3.11"
+dependencies = [
+    "finagent-core",
+    "pypdf>=4.2",
+    "python-docx>=1.1",
+    "openpyxl>=3.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+include = ["finagent_ingestion*"]

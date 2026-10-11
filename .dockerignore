@@ -1,0 +1,19 @@
+# Keep the build context small and never ship local state or secrets into an image.
+.git
+.venv
+node_modules
+**/node_modules
+**/.next
+**/__pycache__
+**/*.egg-info
+**/*.pyc
+.pytest_cache
+.ruff_cache
+storage
+*.db
+.env
+.env.*
+!.env.example
+/opt
+tests
+docs

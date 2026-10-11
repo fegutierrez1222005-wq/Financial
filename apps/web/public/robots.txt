@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /$
+Allow: /login
+Allow: /register
+
+# Everything behind authentication is per-tenant research data.
+Disallow: /dashboard
+Disallow: /agents
+Disallow: /research
+Disallow: /evaluations
+Disallow: /leaderboard
+Disallow: /experiments
+Disallow: /backtests
+Disallow: /data
+Disallow: /settings

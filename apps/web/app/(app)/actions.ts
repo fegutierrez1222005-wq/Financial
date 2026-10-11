@@ -221,6 +221,10 @@ export async function runBacktest(formData: FormData): Promise<void> {
   const backtestId = String(formData.get("backtest_id") ?? "");
   await apiFetch(`/backtests/${backtestId}/run`, { method: "POST" });
   revalidatePath(`/backtests/${backtestId}`);
+  // A backtest has no status of its own — its splits appear only once the job finishes.
+  // The flag tells the page a result is expected, so it can poll instead of showing an
+  // empty "not run yet" state that a worker is in the middle of filling in.
+  redirect(`/backtests/${backtestId}?awaiting=1`);
 }
 
 // -------------------------------------------------------------------- experiments

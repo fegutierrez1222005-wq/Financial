@@ -11,6 +11,7 @@ import {
   PageHeader,
   Panel,
 } from "@/components/primitives";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { runBacktest } from "@/app/(app)/actions";
 import { apiFetchOrNull } from "@/lib/api";
 import { EMPTY, formatDate, formatNumber, formatPercent, formatUsd } from "@/lib/format";
@@ -173,8 +174,15 @@ function OverfittingPanel({ report }: { report: Record<string, unknown> }) {
   );
 }
 
-export default async function BacktestPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function BacktestPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ awaiting?: string }>;
+}) {
   const { id } = await params;
+  const { awaiting } = await searchParams;
   const detail = await apiFetchOrNull<BacktestDetail>(`/backtests/${id}?include_trades=true`);
   if (!detail) notFound();
 
@@ -183,6 +191,9 @@ export default async function BacktestPage({ params }: { params: Promise<{ id: s
   const splits = [...detail.runs].sort(
     (a, b) => order.indexOf(a.split) - order.indexOf(b.split),
   );
+  const awaitingResult =
+    awaiting === "1" &&
+    (splits.length === 0 || splits.some((split) => !["SUCCEEDED", "FAILED"].includes(split.status)));
 
   return (
     <>
@@ -200,7 +211,12 @@ export default async function BacktestPage({ params }: { params: Promise<{ id: s
         }
       />
 
-      <div className="mb-4">
+      <div className="mb-4 space-y-3">
+        <AutoRefresh
+          status={awaitingResult ? "RUNNING" : "SUCCEEDED"}
+          label="backtest"
+          giveUpAfterMs={5 * 60_000}
+        />
         <Notice tone="caution">{detail.disclaimer}</Notice>
       </div>
 

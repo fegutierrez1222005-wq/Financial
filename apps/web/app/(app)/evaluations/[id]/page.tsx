@@ -12,6 +12,7 @@ import {
   ScoreBar,
   StatusBadge,
 } from "@/components/primitives";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { apiFetchOrNull } from "@/lib/api";
 import {
   EMPTY,
@@ -75,6 +76,10 @@ export default async function EvaluationPage({ params }: { params: Promise<{ id:
         ) : (
           <Badge tone="info">Judge: {evaluation.judge_model}</Badge>
         )}
+      </div>
+
+      <div className="mb-4 empty:hidden">
+        <AutoRefresh status={evaluation.status} label="evaluation" />
       </div>
 
       {evaluation.error_message ? (

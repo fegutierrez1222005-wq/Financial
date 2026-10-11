@@ -10,6 +10,7 @@ import {
   ScoreBar,
   StatusBadge,
 } from "@/components/primitives";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { runExperiment } from "@/app/(app)/actions";
 import { apiFetchOrNull } from "@/lib/api";
 import { EMPTY, formatDuration, formatPercent, formatRatioAsPercent, formatUsd } from "@/lib/format";
@@ -73,6 +74,10 @@ export default async function ExperimentPage({ params }: { params: Promise<{ id:
         <span className="text-2xs text-ink-500">
           Variable: {experiment.variable} · Suite: {experiment.suite_key}
         </span>
+      </div>
+
+      <div className="mb-4 empty:hidden">
+        <AutoRefresh status={experiment.status} label="experiment" />
       </div>
 
       {experiment.conclusion ? (

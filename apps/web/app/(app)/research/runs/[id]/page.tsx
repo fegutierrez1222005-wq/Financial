@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+import { AutoRefresh } from "@/components/auto-refresh";
 import { SubmitButton } from "@/components/action-form";
 import {
   Badge,
@@ -44,6 +45,10 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   if (!detail) notFound();
 
   const { run, task } = detail;
+  // A run that has not executed has not "produced nothing" — it has not run. Saying the
+  // former would be a confidently wrong statement about work that never happened, which
+  // is exactly what this product exists to catch elsewhere.
+  const finished = ["SUCCEEDED", "FAILED", "CANCELLED"].includes(run.status);
 
   return (
     <>
@@ -79,6 +84,10 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
           <Badge>Live information</Badge>
         )}
         {run.debate_role ? <Badge tone="info">{run.debate_role}</Badge> : null}
+      </div>
+
+      <div className="mb-4 empty:hidden">
+        <AutoRefresh status={run.status} label="run" />
       </div>
 
       {run.error_message ? (
@@ -147,8 +156,12 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
               </pre>
             ) : (
               <EmptyState
-                title="No output"
-                description="This run did not produce a report. The trace below shows how far it got."
+                title={finished ? "No output" : "Not started yet"}
+                description={
+                  finished
+                    ? "This run did not produce a report. The trace below shows how far it got."
+                    : "The run is waiting for a worker. Its report will appear here once it completes."
+                }
               />
             )}
           </Panel>
@@ -157,6 +170,16 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
             title="Execution trace"
             description="Every action, in order, with its latency and cost."
           >
+            {detail.trace.length === 0 ? (
+              <EmptyState
+                title={finished ? "No trace recorded" : "No steps yet"}
+                description={
+                  finished
+                    ? "This run finished without recording a step, which should not happen; the error above explains why."
+                    : "Each action appears here as the agent takes it."
+                }
+              />
+            ) : (
             <table className="data-table">
               <thead>
                 <tr>
@@ -198,6 +221,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                 ))}
               </tbody>
             </table>
+            )}
           </Panel>
 
           <Panel
@@ -206,8 +230,12 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
           >
             {detail.evidence.length === 0 ? (
               <EmptyState
-                title="No evidence retrieved"
-                description="Nothing in the indexed corpus was admissible for this question under the active information cutoff."
+                title={finished ? "No evidence retrieved" : "No evidence yet"}
+                description={
+                  finished
+                    ? "Nothing in the indexed corpus was admissible for this question under the active information cutoff."
+                    : "The run has not searched the corpus yet."
+                }
               />
             ) : (
               <ul className="divide-y divide-ink-800">
@@ -268,7 +296,14 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
 
           <Panel title="Plan">
             {detail.plan.length === 0 ? (
-              <EmptyState title="No plan recorded" description="This run produced no plan steps." />
+              <EmptyState
+                title={finished ? "No plan recorded" : "No plan yet"}
+                description={
+                  finished
+                    ? "This run produced no plan steps."
+                    : "The agent has not begun planning."
+                }
+              />
             ) : (
               <ol className="divide-y divide-ink-800">
                 {detail.plan.map((step) => (
@@ -286,7 +321,14 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
 
           <Panel title="Tool calls">
             {detail.tool_calls.length === 0 ? (
-              <EmptyState title="No tools used" description="This run answered without calling a tool." />
+              <EmptyState
+                title={finished ? "No tools used" : "No tool calls yet"}
+                description={
+                  finished
+                    ? "This run answered without calling a tool."
+                    : "Tool calls appear here as the agent makes them."
+                }
+              />
             ) : (
               <ul className="divide-y divide-ink-800">
                 {detail.tool_calls.map((call, index) => (
@@ -313,7 +355,11 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
             {detail.evaluations.length === 0 ? (
               <EmptyState
                 title="Not scored yet"
-                description="Use Evaluate above to verify every claim against the retrieved evidence."
+                description={
+                  finished
+                    ? "Use Evaluate above to verify every claim against the retrieved evidence."
+                    : "A run can be scored once it has produced a report."
+                }
               />
             ) : (
               <ul className="divide-y divide-ink-800">
